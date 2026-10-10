@@ -1,9 +1,11 @@
 /** @type {import('next').NextConfig} */
+const isPages = process.env.GITHUB_PAGES === "1";
 const nextConfig = {
   reactStrictMode: true,
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
+  ...(isPages ? { output: "export", trailingSlash: true, images: { unoptimized: true } } : {}),
   webpack(config) {
-    // thirdweb → Base Account → Coinbase CDP SDK тянет необязательные модули x402 (платежи),
-    // которые нам не нужны и не установлены. Заменяем их пустыми заглушками, чтобы сборка проходила.
+    // необязательные платёжные модули Coinbase (x402) нам не нужны — заменяем заглушками
     config.resolve.alias = {
       ...config.resolve.alias,
       "@x402/core": false,

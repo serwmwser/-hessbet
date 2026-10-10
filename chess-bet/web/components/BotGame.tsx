@@ -72,7 +72,7 @@ export default function BotGame() {
   // Stockfish в Web Worker (файл копируется в public/ скриптом postinstall)
   useEffect(() => {
     let w: Worker;
-    try { w = new Worker("/stockfish.js"); } catch { return; }
+    try { w = new Worker(`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/stockfish.js`); } catch { return; }
     worker.current = w;
     w.postMessage("uci");
     w.onmessage = (ev) => {
