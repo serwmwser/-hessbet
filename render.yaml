@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: chessbet-server
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: chess-bet/server
+    buildCommand: npm install
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ALLOWED_ORIGINS
+        value: https://serwmwser.github.io
+      - key: RPC_URL
+        value: https://rpc-amoy.polygon.technology
+      - key: ESCROW
+        sync: false
+      - key: ORACLE_PK
+        sync: false
