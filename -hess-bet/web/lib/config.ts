@@ -1,0 +1,27 @@
+import { createThirdwebClient, defineChain, getContract } from "thirdweb";
+
+export const CLIENT_ID = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "";
+export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 137);
+export const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC || "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
+export const ESCROW_ADDRESS = process.env.NEXT_PUBLIC_ESCROW || "";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+export const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080/ws";
+export const TERMS_URL = process.env.NEXT_PUBLIC_TERMS_URL || "/terms";
+
+export const client = createThirdwebClient({ clientId: CLIENT_ID || "missing-client-id" });
+export const chain = defineChain(CHAIN_ID);
+
+export const usdcContract = getContract({ client, chain, address: USDC_ADDRESS });
+export const escrowContract = getContract({ client, chain, address: ESCROW_ADDRESS || "0x0000000000000000000000000000000000000000" });
+
+// Всё хранится в минимальных единицах USDC: 1 USDC = 1_000_000
+export const BET_MIN = 50_000;
+export const BET_MAX = 5_000_000;
+export const BET_STEP = 50_000;
+export const BETS = Array.from({ length: BET_MAX / BET_STEP }, (_, i) => (i + 1) * BET_STEP);
+export const DURATIONS = [900, 1800, 2700, 3600, 10800, 86400];
+export const BOT_TIMES = [5, 15, 30, 45]; // минуты
+export const DEFAULT_FEE_BPS = 600;
+
+export const usdc = (n: number | bigint | string) => (Number(n) / 1e6).toFixed(2);
+export const shortAddr = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
