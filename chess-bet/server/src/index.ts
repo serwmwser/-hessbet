@@ -28,6 +28,7 @@ const ABI = [
   "function nextGameId() view returns (uint256)",
   "function feeBps() view returns (uint16)",
   "function reportResult(uint256 id,address winner)",
+  "function refundStuck(uint256 id)",
 ];
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallet = new ethers.Wallet(ORACLE_PK, provider);
@@ -102,6 +103,15 @@ async function sync() {
     } else if (st === 2) {
       if (!live.has(id) && !done.some((d) => d.id === id))
         startLive(id, lc(g.p1), lc(g.p2), g.bet.toString(), Number(g.duration), Number(g.startedAt) * 1000);
+      // результат не сообщён за 2×время + 3 дня (как в контракте) → сами открываем возврат ставок; refundStuck может вызвать любой
+      if (Date.now() / 1000 > Number(g.startedAt) + 2 * Number(g.duration) + 3 * 86_400) {
+        try {
+          await enqueue(async () => { await (await escrow.refundStuck(id)).wait(); });
+          console.log(`refundStuck #${id}: ставки открыты к возврату`);
+        } catch (e) {
+          console.error(`refundStuck #${id} не удался:`, (e as Error).message);
+        }
+      }
     } else {
       open.delete(id);
     }
