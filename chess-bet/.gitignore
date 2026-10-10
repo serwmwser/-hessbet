@@ -1,0 +1,13 @@
+cat > /workspaces/-hessbet/.gitignore << 'EOF'
+node_modules/
+.env
+.env.*
+!.env.example
+.next/
+artifacts/
+cache/
+typechain-types/
+data/
+*.log
+web/public/stockfish.js
+EOF
