@@ -53,11 +53,10 @@ type Props = {
   orientation: "white" | "black";
   lastMove?: { from: string; to: string } | null;
   disabled?: boolean;
-  mute?: boolean; // без звука (например, при просмотре истории партии)
   onMove: (from: string, to: string, promotion?: string) => void;
 };
 
-export default function Board({ fen, orientation, lastMove, disabled, mute, onMove }: Props) {
+export default function Board({ fen, orientation, lastMove, disabled, onMove }: Props) {
   const { board } = useApp();
   const [sel, setSel] = useState<string | null>(null);
   const [promo, setPromo] = useState<{ from: string; to: string } | null>(null);
@@ -68,8 +67,7 @@ export default function Board({ fen, orientation, lastMove, disabled, mute, onMo
   useEffect(() => {
     setSel(null); setPromo(null);
     if (first.current) { first.current = false; return; }
-    if (!mute) beep();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    beep();
   }, [fen]);
 
   const legal = useMemo(() => (sel ? chess.moves({ square: sel as Square, verbose: true }) : []), [sel, chess]);

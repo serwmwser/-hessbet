@@ -4,17 +4,6 @@ import { useActiveAccount, useSendTransaction } from "thirdweb/react";
 import { escrowContract, ESCROW_ADDRESS, usdcContract } from "./config";
 
 export type Step = "idle" | "approve" | "confirm";
-const ZERO = "0x0000000000000000000000000000000000000000";
-
-/** Сколько и можно ли забрать по игре: amount — доступно игроку, claimed — уже забрано, status — статус игры в контракте (2 = идёт, 3 = завершена, 4 = отменена). */
-export async function readClaimInfo(id: number, who: string) {
-  const [amount, isClaimed, status] = await readContract({
-    contract: escrowContract,
-    method: "function claimInfo(uint256 id, address who) view returns (uint256 amount, bool isClaimed, uint8 status)",
-    params: [BigInt(id), who],
-  });
-  return { amount: Number(amount), claimed: isClaimed, status: Number(status) };
-}
 
 export function useEscrow() {
   const account = useActiveAccount();
@@ -44,34 +33,30 @@ export function useEscrow() {
 
   return {
     account,
-    /** signer = адрес одноразового ключа приглашения (приватная игра) или null (публичная) */
-    async create(bet: number, duration: number, signer: string | null, onStep?: (s: Step) => void) {
+    async create(bet: number, duration: number, onStep?: (s: Step) => void) {
       await ensureAllowance(BigInt(bet), onStep);
       onStep?.("confirm");
       await run(prepareContractCall({
         contract: escrowContract,
-        method: "function createGame(uint256 bet, uint32 duration, address inviteSigner) returns (uint256)",
-        params: [BigInt(bet), duration, signer ?? ZERO],
+        method: "function createGame(uint256 bet, uint32 duration) returns (uint256)",
+        params: [BigInt(bet), duration],
       }));
     },
-    /** inviteSig = подпись ключа приглашения для приватной игры, для публичной — "0x" */
-    async join(id: number, bet: number, inviteSig: string, onStep?: (s: Step) => void) {
+    async join(id: number, bet: number, onStep?: (s: Step) => void) {
       await ensureAllowance(BigInt(bet), onStep);
       onStep?.("confirm");
       await run(prepareContractCall({
         contract: escrowContract,
-        method: "function joinGame(uint256 id, bytes inviteSig)",
-        params: [BigInt(id), inviteSig as `0x${string}`],
+        method: "function joinGame(uint256 id)",
+        params: [BigInt(id)],
       }));
     },
     async cancel(id: number) {
-      await run(prepareContractCall({ contract: escrowContract, method: "function cancelGame(uint256 id)", params: [BigInt(id)] }));
-    },
-    async claim(id: number) {
-      await run(prepareContractCall({ contract: escrowContract, method: "function claim(uint256 id)", params: [BigInt(id)] }));
-    },
-    async refund(id: number) {
-      await run(prepareContractCall({ contract: escrowContract, method: "function refundStuck(uint256 id)", params: [BigInt(id)] }));
+      await run(prepareContractCall({
+        contract: escrowContract,
+        method: "function cancelGame(uint256 id)",
+        params: [BigInt(id)],
+      }));
     },
   };
 }

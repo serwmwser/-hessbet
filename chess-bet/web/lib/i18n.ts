@@ -7,13 +7,7 @@ export const KEYS = [
   "rTime", "rRes", "rDraw", "wins", "losses", "draws", "net", "thinking", "any", "min",
   "hr", "noActive",
 ] as const;
-export const EXTRA_KEYS = [
-  "congrats", "claim", "claimed", "payoutWait", "share", "copyLink", "linkCopied", "privateGame", "priv", "myGames",
-  "inviteTitle", "inviteBad", "inviteText", "refund", "refundHint", "gameId", "unclaimed", "live", "claimNote", "noMyGames",
-  "resume", "rTimeDraw", "rAbort",
-] as const;
-export type ExtraKey = (typeof EXTRA_KEYS)[number];
-export type Key = (typeof KEYS)[number] | ExtraKey;
+export type Key = (typeof KEYS)[number];
 
 export const LANGS = {
   ru: "Русский", en: "English", es: "Español", de: "Deutsch", fr: "Français",
@@ -78,42 +72,8 @@ const RAW: Record<Lang, string[]> = {
     "س", "لا توجد لعبة نشطة"],
 };
 
-// Тексты функций приглашений, Мои игры, claim (по именам ключей — перепутать порядок нельзя)
-const EXTRA: Record<Lang, Record<ExtraKey, string>> = {
-  ru: { congrats: "Поздравляем!", claim: "Забрать", claimed: "Получено ✓", payoutWait: "Результат подтверждается в блокчейне…", share: "Поделиться", copyLink: "Копировать ссылку", linkCopied: "Ссылка скопирована", privateGame: "Приватная игра (только по ссылке)", priv: "Приватная", myGames: "Мои игры",
-    inviteTitle: "Вас пригласили в игру", inviteBad: "Игра не найдена или уже началась", inviteText: "Сыграй со мной в шахматы в Chess Bet", refund: "Вернуть ставки", refundHint: "Если партия так и не завершилась, ставки можно вернуть через 2 × лимит времени + 3 дня. Введите номер игры.", gameId: "Номер игры", unclaimed: "Невостребованные выплаты", live: "Сейчас", claimNote: "Выигрыш отправляется на ваш кошелёк после нажатия «Забрать».", noMyGames: "У вас нет открытых игр", resume: "Продолжить",
-    rTimeDraw: "Время вышло, но у соперника недостаточно материала для мата — ничья", rAbort: "Первый ход не был сделан — игра отменена, ставки возвращены" },
-  en: { congrats: "Congratulations!", claim: "Claim", claimed: "Claimed ✓", payoutWait: "Confirming the result on-chain…", share: "Share", copyLink: "Copy link", linkCopied: "Link copied", privateGame: "Private game (join by link only)", priv: "Private", myGames: "My games",
-    inviteTitle: "You are invited to a game", inviteBad: "Game not found or already started", inviteText: "Play chess with me on Chess Bet", refund: "Refund stakes", refundHint: "If a game never finished, stakes can be refunded after 2 × the time limit + 3 days. Enter the game ID.", gameId: "Game ID", unclaimed: "Unclaimed winnings", live: "Live", claimNote: "Winnings are sent to your wallet when you press Claim.", noMyGames: "You have no open games", resume: "Continue",
-    rTimeDraw: "Time out, but the opponent cannot checkmate — draw", rAbort: "No first move was made — game aborted, stakes returned" },
-  es: { congrats: "¡Felicidades!", claim: "Reclamar", claimed: "Reclamado ✓", payoutWait: "Confirmando el resultado en la cadena…", share: "Compartir", copyLink: "Copiar enlace", linkCopied: "Enlace copiado", privateGame: "Partida privada (solo por enlace)", priv: "Privada", myGames: "Mis partidas",
-    inviteTitle: "Te han invitado a una partida", inviteBad: "Partida no encontrada o ya iniciada", inviteText: "Juega al ajedrez conmigo en Chess Bet", refund: "Devolver apuestas", refundHint: "Si una partida no terminó, las apuestas pueden devolverse tras 2 × el límite de tiempo + 3 días. Introduce el ID de la partida.", gameId: "ID de partida", unclaimed: "Pagos sin reclamar", live: "En vivo", claimNote: "Las ganancias se envían a tu billetera al pulsar «Reclamar».", noMyGames: "No tienes partidas abiertas", resume: "Continuar",
-    rTimeDraw: "Se agotó el tiempo, pero el rival no puede dar mate: tablas", rAbort: "No se hizo el primer movimiento: partida anulada, apuestas devueltas" },
-  de: { congrats: "Glückwunsch!", claim: "Abholen", claimed: "Abgeholt ✓", payoutWait: "Ergebnis wird on-chain bestätigt…", share: "Teilen", copyLink: "Link kopieren", linkCopied: "Link kopiert", privateGame: "Private Partie (nur per Link)", priv: "Privat", myGames: "Meine Spiele",
-    inviteTitle: "Du wurdest zu einer Partie eingeladen", inviteBad: "Partie nicht gefunden oder bereits gestartet", inviteText: "Spiel Schach mit mir bei Chess Bet", refund: "Einsätze zurückfordern", refundHint: "Wurde eine Partie nie beendet, können die Einsätze nach 2 × Zeitlimit + 3 Tagen zurückgefordert werden. Gib die Partie-ID ein.", gameId: "Partie-ID", unclaimed: "Nicht abgeholte Auszahlungen", live: "Live", claimNote: "Der Gewinn wird nach Klick auf «Abholen» an deine Wallet gesendet.", noMyGames: "Du hast keine offenen Spiele", resume: "Fortsetzen",
-    rTimeDraw: "Zeit abgelaufen, aber der Gegner kann nicht mehr mattsetzen — Remis", rAbort: "Kein erster Zug — Partie abgebrochen, Einsätze zurückerstattet" },
-  fr: { congrats: "Félicitations !", claim: "Récupérer", claimed: "Récupéré ✓", payoutWait: "Confirmation du résultat sur la chaîne…", share: "Partager", copyLink: "Copier le lien", linkCopied: "Lien copié", privateGame: "Partie privée (uniquement par lien)", priv: "Privée", myGames: "Mes parties",
-    inviteTitle: "Vous êtes invité à une partie", inviteBad: "Partie introuvable ou déjà commencée", inviteText: "Joue aux échecs avec moi sur Chess Bet", refund: "Rembourser les mises", refundHint: "Si une partie n'a jamais été terminée, les mises peuvent être remboursées après 2 × la limite de temps + 3 jours. Saisissez l'ID de la partie.", gameId: "ID de la partie", unclaimed: "Gains non récupérés", live: "En direct", claimNote: "Les gains sont envoyés sur votre portefeuille après avoir appuyé sur « Récupérer ».", noMyGames: "Vous n'avez aucune partie ouverte", resume: "Continuer",
-    rTimeDraw: "Temps écoulé, mais l'adversaire ne peut pas mater — nulle", rAbort: "Aucun premier coup — partie annulée, mises remboursées" },
-  pt: { congrats: "Parabéns!", claim: "Resgatar", claimed: "Resgatado ✓", payoutWait: "Confirmando o resultado na blockchain…", share: "Compartilhar", copyLink: "Copiar link", linkCopied: "Link copiado", privateGame: "Jogo privado (somente por link)", priv: "Privado", myGames: "Meus jogos",
-    inviteTitle: "Você foi convidado para um jogo", inviteBad: "Jogo não encontrado ou já iniciado", inviteText: "Jogue xadrez comigo no Chess Bet", refund: "Devolver apostas", refundHint: "Se um jogo nunca terminou, as apostas podem ser devolvidas após 2 × o limite de tempo + 3 dias. Digite o ID do jogo.", gameId: "ID do jogo", unclaimed: "Pagamentos não resgatados", live: "Ao vivo", claimNote: "Os ganhos são enviados à sua carteira ao clicar em «Resgatar».", noMyGames: "Você não tem jogos abertos", resume: "Continuar",
-    rTimeDraw: "Tempo esgotado, mas o adversário não pode dar xeque-mate — empate", rAbort: "O primeiro lance não foi feito — jogo cancelado, apostas devolvidas" },
-  tr: { congrats: "Tebrikler!", claim: "Talep et", claimed: "Alındı ✓", payoutWait: "Sonuç zincirde onaylanıyor…", share: "Paylaş", copyLink: "Bağlantıyı kopyala", linkCopied: "Bağlantı kopyalandı", privateGame: "Özel oyun (yalnızca bağlantıyla)", priv: "Özel", myGames: "Oyunlarım",
-    inviteTitle: "Bir oyuna davet edildiniz", inviteBad: "Oyun bulunamadı veya başladı", inviteText: "Chess Bet'te benimle satranç oyna", refund: "Bahisleri iade al", refundHint: "Oyun hiç bitmediyse, bahisler 2 × süre sınırı + 3 gün sonra iade edilebilir. Oyun kimliğini girin.", gameId: "Oyun kimliği", unclaimed: "Talep edilmemiş ödemeler", live: "Canlı", claimNote: "Kazanç, «Talep et» düğmesine bastığınızda cüzdanınıza gönderilir.", noMyGames: "Açık oyununuz yok", resume: "Devam et",
-    rTimeDraw: "Süre doldu ancak rakip mat edemez — beraberlik", rAbort: "İlk hamle yapılmadı — oyun iptal edildi, bahisler iade edildi" },
-  zh: { congrats: "恭喜！", claim: "领取", claimed: "已领取 ✓", payoutWait: "正在链上确认结果…", share: "分享", copyLink: "复制链接", linkCopied: "链接已复制", privateGame: "私人对局（仅限链接加入）", priv: "私人", myGames: "我的对局",
-    inviteTitle: "你被邀请参加对局", inviteBad: "未找到对局或已开始", inviteText: "来 Chess Bet 和我下棋", refund: "退还赌注", refundHint: "如果对局一直未结束，在2 ×用时 + 3天之后可退还赌注。请输入对局编号。", gameId: "对局编号", unclaimed: "待领取款项", live: "实时", claimNote: "点击“领取”后，奖金将发送到你的钱包。", noMyGames: "你没有开放的对局", resume: "继续",
-    rTimeDraw: "超时，但对手无法将死——判和", rAbort: "未走第一步——对局取消，赌注已退还" },
-  ar: { congrats: "تهانينا!", claim: "استلام", claimed: "تم الاستلام ✓", payoutWait: "جارٍ تأكيد النتيجة على السلسلة…", share: "مشاركة", copyLink: "نسخ الرابط", linkCopied: "تم نسخ الرابط", privateGame: "لعبة خاصة (بالرابط فقط)", priv: "خاصة", myGames: "ألعابي",
-    inviteTitle: "تمت دعوتك إلى لعبة", inviteBad: "اللعبة غير موجودة أو بدأت بالفعل", inviteText: "العب الشطرنج معي على Chess Bet", refund: "استرداد الرهانات", refundHint: "إذا لم تنتهِ اللعبة قط، يمكن استرداد الرهانات بعد 2 × المهلة + 3 أيام. أدخل رقم اللعبة.", gameId: "رقم اللعبة", unclaimed: "مبالغ غير مستلمة", live: "مباشر", claimNote: "تُرسل الأرباح إلى محفظتك عند الضغط على «استلام».", noMyGames: "ليس لديك ألعاب مفتوحة", resume: "متابعة",
-    rTimeDraw: "انتهى الوقت لكن الخصم لا يستطيع التمات — تعادل", rAbort: "لم يتم أول نقلة — أُلغيت اللعبة وأُعيدت الرهانات" },
-};
-
 export const DICT = Object.fromEntries(
-  (Object.keys(RAW) as Lang[]).map((l) => [
-    l,
-    { ...Object.fromEntries(KEYS.map((k, i) => [k, RAW[l][i]])), ...EXTRA[l] },
-  ])
+  (Object.keys(RAW) as Lang[]).map((l) => [l, Object.fromEntries(KEYS.map((k, i) => [k, RAW[l][i]]))])
 ) as Record<Lang, Record<Key, string>>;
 
 export const detectLang = (): Lang => {

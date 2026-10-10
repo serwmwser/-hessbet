@@ -1,16 +1,13 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchGames, fetchMine, OpenGame } from "@/lib/api";
+import { fetchGames, OpenGame } from "@/lib/api";
 import { BETS, DEFAULT_FEE_BPS, DURATIONS, shortAddr, TERMS_URL, usdc } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
-import { gameUrl, newInvite } from "@/lib/invite";
 import { Step, useEscrow } from "@/lib/tx";
-import Share from "./Share";
 
 export const durLabel = (sec: number, min: string, hr: string) => (sec < 3600 ? `${sec / 60} ${min}` : `${sec / 3600} ${hr}`);
 const QUICK = [50_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Lobby() {
   const { t, toast, agreed, setAgreed } = useApp();
@@ -19,12 +16,10 @@ export default function Lobby() {
   const [feeBps, setFeeBps] = useState(DEFAULT_FEE_BPS);
   const [betIdx, setBetIdx] = useState(19); // 1 USDC
   const [dur, setDur] = useState(900);
-  const [priv, setPriv] = useState(false);
   const [busy, setBusy] = useState<number | "create" | null>(null);
   const [step, setStep] = useState<Step>("idle");
   const [fMax, setFMax] = useState(0);
   const [fDur, setFDur] = useState(0);
-  const [created, setCreated] = useState<{ id: number; url: string; bet: number } | null>(null);
 
   const refresh = useCallback(async () => {
     try { const r = await fetchGames(); setGames(r.games); setFeeBps(r.feeBps); } catch { setGames((g) => g ?? []); }
@@ -43,30 +38,18 @@ export default function Lobby() {
     return true;
   };
   const stepText = step === "approve" ? t("approving") : step === "confirm" ? t("confirming") : "";
-  const mineOpen = async (a: string) => { try { return (await fetchMine(a)).open; } catch { return [] as OpenGame[]; } };
 
   const onCreate = async () => {
-    if (!guard() || !me) return;
+    if (!guard()) return;
     setBusy("create");
-    try {
-      const known = new Set((await mineOpen(me)).map((g) => g.id));
-      const inv = priv ? newInvite() : null;
-      await create(bet, dur, inv ? inv.signer : null, setStep);
-      toast(t("waiting"), "ok");
-      refresh();
-      // ждём, пока сервер увидит игру, чтобы узнать её номер и показать ссылку-приглашение
-      for (let i = 0; i < 10; i++) {
-        const g = (await mineOpen(me)).find((x) => (inv ? x.signer === inv.signer.toLowerCase() : !known.has(x.id)));
-        if (g) { setCreated({ id: g.id, bet: Number(g.bet), url: gameUrl(g.id, inv?.key) }); break; }
-        await sleep(1500);
-      }
-    } catch (e) { toast(errMsg(e), "err"); }
+    try { await create(bet, dur, setStep); toast(t("waiting"), "ok"); await refresh(); }
+    catch (e) { toast(errMsg(e), "err"); }
     finally { setBusy(null); setStep("idle"); }
   };
   const onJoin = async (g: OpenGame) => {
     if (!guard()) return;
     setBusy(g.id);
-    try { await join(g.id, Number(g.bet), "0x", setStep); await refresh(); }
+    try { await join(g.id, Number(g.bet), setStep); await refresh(); }
     catch (e) { toast(errMsg(e), "err"); }
     finally { setBusy(null); setStep("idle"); }
   };
@@ -104,11 +87,6 @@ export default function Lobby() {
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" className="accent-emerald-500 w-4 h-4" checked={priv} onChange={(e) => setPriv(e.target.checked)} />
-          <span>🔒 {t("privateGame")}</span>
-        </label>
-
         <dl className="grid grid-cols-3 gap-2 text-center text-sm">
           <div className="rounded-2xl bg-black/5 dark:bg-white/5 py-2"><dt className="opacity-60 text-xs">{t("pot")}</dt><dd className="mono font-semibold">{usdc(pot)}</dd></div>
           <div className="rounded-2xl bg-black/5 dark:bg-white/5 py-2"><dt className="opacity-60 text-xs">{t("fee")} {feeBps / 100}%</dt><dd className="mono font-semibold">{usdc(pot - win)}</dd></div>
@@ -127,17 +105,6 @@ export default function Lobby() {
         </button>
         {!account && <p className="text-sm opacity-70 text-center">{t("signIn")}</p>}
       </section>
-
-      {created && (
-        <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card space-y-2 !border-emerald-500/40">
-          <div className="flex items-center justify-between">
-            <div className="font-semibold">⏳ #{created.id} · {usdc(created.bet)} USDC · {t("waiting")}</div>
-            <button className="text-xl leading-none opacity-60" aria-label="Close" onClick={() => setCreated(null)}>×</button>
-          </div>
-          <div className="mono text-xs break-all opacity-70" dir="ltr">{created.url}</div>
-          <Share url={created.url} text={`${t("inviteText")} · ${usdc(created.bet)} USDC`} />
-        </motion.section>
-      )}
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

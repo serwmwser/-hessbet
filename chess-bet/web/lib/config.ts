@@ -6,7 +6,7 @@ export const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC || "0x3c499c542cEF5E381
 export const ESCROW_ADDRESS = process.env.NEXT_PUBLIC_ESCROW || "";
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 export const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080/ws";
-export const TERMS_URL = process.env.NEXT_PUBLIC_TERMS_URL || `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/terms/`;
+export const TERMS_URL = process.env.NEXT_PUBLIC_TERMS_URL || "/terms";
 
 export const client = createThirdwebClient({ clientId: CLIENT_ID || "missing-client-id" });
 export const chain = defineChain(CHAIN_ID);

@@ -4,9 +4,8 @@ import { useActiveAccount, useWalletBalance } from "thirdweb/react";
 import { fetchHistory, DoneGame, Stats } from "@/lib/api";
 import { chain, client, shortAddr, usdc, USDC_ADDRESS } from "@/lib/config";
 import { BOARDS, BoardName, useApp } from "@/lib/ctx";
-import MyGames from "./MyGames";
 
-export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => void }) {
+export default function Profile() {
   const { t, board, setBoard } = useApp();
   const account = useActiveAccount();
   const me = account?.address;
@@ -31,7 +30,6 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
         <div className="card text-center opacity-80">{t("signIn")}</div>
       ) : (
         <>
-          <MyGames onOpenGame={onOpenGame} />
           <section className="card space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">{t("balance")}</h2>
