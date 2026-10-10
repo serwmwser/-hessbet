@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
+body { @apply bg-slate-50 text-slate-900 antialiased; }
+.dark body { @apply bg-ink-950 text-slate-100; }
+
+.glass { @apply backdrop-blur-xl bg-white/70 border border-black/5; }
+.dark .glass { @apply bg-ink-800/60 border-white/10; }
+
+.card { @apply rounded-xl2 bg-white border border-black/5 shadow-soft p-4 sm:p-5; }
+.dark .card { @apply bg-ink-800/80 border-white/10; }
+
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition active:scale-[.98] disabled:opacity-50 disabled:pointer-events-none; }
+.btn-primary { @apply text-white bg-gradient-to-r from-brand-500 to-brand-violet shadow-lg shadow-emerald-900/20 hover:brightness-110; }
+.btn-ghost { @apply bg-black/5 hover:bg-black/10; }
+.dark .btn-ghost { @apply bg-white/10 hover:bg-white/15; }
+.btn-danger { @apply bg-red-500/90 text-white hover:bg-red-500; }
+
+.chip { @apply rounded-full px-3 py-1.5 text-sm font-medium bg-black/5 border border-transparent cursor-pointer select-none; }
+.dark .chip { @apply bg-white/10; }
+.chip-on { @apply bg-gradient-to-r from-brand-500 to-brand-violet text-white; }
+
+.mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.skeleton { @apply animate-pulse rounded-2xl bg-black/10; }
+.dark .skeleton { @apply bg-white/10; }
+
+input[type="range"] { accent-color: #10b981; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
