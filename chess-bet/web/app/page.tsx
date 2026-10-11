@@ -4,6 +4,7 @@ import { useActiveAccount } from "thirdweb/react";
 import BotGame from "@/components/BotGame";
 import BottomNav, { Tab } from "@/components/BottomNav";
 import Header from "@/components/Header";
+import Earn from "@/components/Earn";
 import Hero from "@/components/Hero";
 import Invite from "@/components/Invite";
 import Lobby from "@/components/Lobby";
@@ -13,6 +14,7 @@ import Profile from "@/components/Profile";
 import { fetchMine } from "@/lib/api";
 import { TERMS_URL } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
+import { captureRef } from "@/lib/ref";
 
 export default function Home() {
   const { t, toast } = useApp();
@@ -22,6 +24,8 @@ export default function Home() {
   const [openCount, setOpenCount] = useState(0);
   const [inviteId, setInviteId] = useState<number | null>(null);
   const addr = account?.address.toLowerCase();
+
+  useEffect(() => { captureRef(); }, []);
 
   // Ссылка-приглашение: /?game=ID (для приватных игр ключ в #k=...)
   useEffect(() => {
@@ -52,11 +56,12 @@ export default function Home() {
       <Header />
       <main className="mx-auto max-w-3xl px-3 pt-4 pb-32">
         {inviteId !== null && <Invite id={inviteId} onClose={() => setInviteId(null)} />}
-        {tab === "lobby" && <div className="space-y-4"><Hero onBot={() => setTab("bot")} /><Lobby /></div>}
+        {tab === "lobby" && <div className="space-y-4"><Hero onBot={() => setTab("bot")} onEarn={() => setTab("earn")} /><Lobby /></div>}
         {tab === "play" && (gid !== null
           ? <OnlineGame id={gid} onExit={() => { setGid(null); setTab("lobby"); }} />
           : openCount ? <WaitingSplash /> : <div className="card text-center space-y-1 py-10"><div className="text-4xl">♞</div><div className="font-medium">{t("noActive")}</div></div>)}
         {tab === "bot" && <BotGame />}
+        {tab === "earn" && <Earn />}
         {tab === "profile" && <Profile onOpenGame={openGame} />}
         <p className="text-center text-xs opacity-50 mt-8">18+ · <a className="underline" href={TERMS_URL}>Terms</a> · Play responsibly</p>
       </main>

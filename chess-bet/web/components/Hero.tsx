@@ -117,7 +117,7 @@ function Slogan({ list, className = "" }: { list: string[]; className?: string }
   );
 }
 
-export default function Hero({ onBot }: { onBot: () => void }) {
+export default function Hero({ onBot, onEarn }: { onBot: () => void; onEarn?: () => void }) {
   const { lang, dark } = useApp();
   const account = useActiveAccount();
   const { connect } = useConnectModal();
@@ -160,6 +160,7 @@ export default function Hero({ onBot }: { onBot: () => void }) {
       <div className="relative flex flex-col sm:flex-row gap-3 justify-center">
         <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={start} className="btn btn-primary text-base px-7 py-3.5 shadow-glow">♛ {x.cta}</motion.button>
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onBot} className="btn bg-white/10 hover:bg-white/20 text-white text-base px-6 py-3.5">🤖 {x.ctaBot}</motion.button>
+        {onEarn && <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onEarn} className="btn bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-base px-6 py-3.5">💰 {lang === "ru" ? "Заработай" : "Earn"}</motion.button>}
       </div>
 
       <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2">
