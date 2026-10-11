@@ -14,7 +14,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "Как играть", how1: "Войдите в аккаунт или подключите кошелёк. Для игры на балансе должны быть USDC (для ставок) и немного POL (для комиссии сети). Если токенов нет, пополните баланс через покупку: кнопки в карточке «Пополнить баланс» ниже.",
     how2: "В лобби выберите ставку (0.05–5 USDC) и время, нажмите «Создать игру» и подтвердите два шага в кошельке. Или присоединитесь к чужой игре.",
     how3: "Когда соперник присоединится, партия начнётся сама. Время общее на партию и идёт только на вашем ходу.",
-    how4: "Победили? Нажмите «Забрать выигрыш» на экране игры или в «Моих играх». Вы получите 94% банка, 6% комиссия.",
+    how4: "Победили? Нажмите «Забрать выигрыш» на экране игры или в «Моих играх». Вы получите 94% банка. 6% — комиссия, благодаря которой в приложении нет рекламы.",
     how5: "Ничья, отмена или зависшая игра: ставки возвращаются полностью, без комиссии. Пригласить друга можно ссылкой ниже.",
   },
   en: {
@@ -25,7 +25,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "How to play", how1: "Sign in or connect a wallet. To play you need USDC (for stakes) and a little POL (for network fees) on your balance. If you have none, top up by buying them: the buttons are in the Top up card below.",
     how2: "In the lobby pick a stake (0.05–5 USDC) and time, press Create game and confirm two steps in your wallet. Or join someone else's game.",
     how3: "When an opponent joins, the match starts by itself. The time is shared for the whole game and runs only on your turn.",
-    how4: "Won? Press Claim on the game screen or in My games. You get 94% of the pot, 6% is the fee.",
+    how4: "Won? Press Claim on the game screen or in My games. You get 94% of the pot. The 6% fee is what keeps the app free of ads.",
     how5: "Draw, cancel or a stuck game: stakes are refunded in full, no fee. Invite a friend with the link below.",
   },
   es: {
@@ -36,7 +36,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "Cómo jugar", how1: "Inicia sesión o conecta un monedero. Para jugar necesitas USDC (para apuestas) y un poco de POL (para comisiones de red) en tu saldo. Si no tienes, recarga comprándolos: los botones están en la tarjeta de recarga de abajo.",
     how2: "En el lobby elige apuesta (0.05–5 USDC) y tiempo, pulsa Crear partida y confirma dos pasos en el monedero. O únete a otra partida.",
     how3: "Cuando un rival se une, la partida empieza sola. El tiempo es común para toda la partida y corre solo en tu turno.",
-    how4: "¿Ganaste? Pulsa Reclamar en la pantalla de juego o en Mis partidas. Recibes el 94% del bote, el 6% es la comisión.",
+    how4: "¿Ganaste? Pulsa Reclamar en la pantalla de juego o en Mis partidas. Recibes el 94% del bote. La comisión del 6% mantiene la app sin anuncios.",
     how5: "Tablas, cancelación o partida atascada: las apuestas se devuelven íntegras, sin comisión. Invita a un amigo con el enlace de abajo.",
   },
   de: {
@@ -47,7 +47,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "So spielst du", how1: "Melde dich an oder verbinde ein Wallet. Zum Spielen brauchst du USDC (für Einsätze) und etwas POL (für Netzwerkgebühren) auf dem Guthaben. Hast du keine, lade durch Kauf auf: die Buttons findest du unten in der Karte zum Aufladen.",
     how2: "Wähle in der Lobby Einsatz (0,05–5 USDC) und Zeit, tippe auf Spiel erstellen und bestätige zwei Schritte im Wallet. Oder tritt einem fremden Spiel bei.",
     how3: "Sobald ein Gegner beitritt, startet die Partie von selbst. Die Zeit gilt für die ganze Partie und läuft nur auf deinem Zug.",
-    how4: "Gewonnen? Tippe auf Abholen im Spielbildschirm oder unter Meine Spiele. Du erhältst 94 % des Pots, 6 % sind die Gebühr.",
+    how4: "Gewonnen? Tippe auf Abholen im Spielbildschirm oder unter Meine Spiele. Du erhältst 94 % des Pots. Die 6 % Gebühr hält die App werbefrei.",
     how5: "Remis, Abbruch oder hängende Partie: Einsätze gibt es vollständig zurück, ohne Gebühr. Lade Freunde per Link unten ein.",
   },
   fr: {
@@ -58,7 +58,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "Comment jouer", how1: "Connectez-vous ou liez un portefeuille. Pour jouer, il faut des USDC (pour les mises) et un peu de POL (pour les frais de réseau) sur votre solde. Si vous n’en avez pas, rechargez par achat : les boutons sont dans la carte de recharge ci-dessous.",
     how2: "Dans le lobby, choisissez la mise (0,05–5 USDC) et le temps, appuyez sur Créer la partie et confirmez deux étapes dans le portefeuille. Ou rejoignez une autre partie.",
     how3: "Quand un adversaire rejoint, la partie démarre seule. Le temps est commun à toute la partie et ne court que pendant votre tour.",
-    how4: "Gagné ? Appuyez sur Récupérer sur l’écran de jeu ou dans Mes parties. Vous recevez 94 % de la cagnotte, 6 % de frais.",
+    how4: "Gagné ? Appuyez sur Récupérer sur l’écran de jeu ou dans Mes parties. Vous recevez 94 % de la cagnotte. Les 6 % de frais gardent l’app sans publicité.",
     how5: "Nulle, annulation ou partie bloquée : les mises sont remboursées en totalité, sans frais. Invitez un ami avec le lien ci-dessous.",
   },
   pt: {
@@ -69,7 +69,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "Como jogar", how1: "Entre ou conecte uma carteira. Para jogar você precisa de USDC (para apostas) e um pouco de POL (para taxas da rede) no saldo. Se não tiver, adicione saldo comprando: os botões estão no cartão de recarga abaixo.",
     how2: "No lobby escolha a aposta (0,05–5 USDC) e o tempo, toque em Criar jogo e confirme dois passos na carteira. Ou entre no jogo de outra pessoa.",
     how3: "Quando um adversário entra, a partida começa sozinha. O tempo é total da partida e corre só na sua vez.",
-    how4: "Ganhou? Toque em Resgatar na tela do jogo ou em Meus jogos. Você recebe 94% do prêmio, 6% é a taxa.",
+    how4: "Ganhou? Toque em Resgatar na tela do jogo ou em Meus jogos. Você recebe 94% do prêmio. A taxa de 6% mantém o app sem anúncios.",
     how5: "Empate, cancelamento ou jogo travado: as apostas voltam integralmente, sem taxa. Convide um amigo pelo link abaixo.",
   },
   tr: {
@@ -80,7 +80,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "Nasıl oynanır", how1: "Giriş yapın veya cüzdan bağlayın. Oynamak için bakiyenizde USDC (bahisler için) ve biraz POL (ağ ücretleri için) olmalı. Yoksa satın alarak yükleyin: düğmeler aşağıdaki yükleme kartındadır.",
     how2: "Lobide bahis (0,05–5 USDC) ve süre seçin, Oyun oluştur’a basın ve cüzdanda iki adımı onaylayın. Ya da başkasının oyununa katılın.",
     how3: "Rakip katılınca maç kendiliğinden başlar. Süre tüm oyun için ortaktır ve yalnızca sizin sıranızda işler.",
-    how4: "Kazandınız mı? Oyun ekranında veya Oyunlarım’da Al’a basın. Havuzun %94’ünü alırsınız, %6 komisyondur.",
+    how4: "Kazandınız mı? Oyun ekranında veya Oyunlarım’da Al’a basın. Havuzun %94’ünü alırsınız. %6 komisyon uygulamayı reklamsız tutar.",
     how5: "Beraberlik, iptal veya takılan oyun: bahisler komisyonsuz tamamen iade edilir. Aşağıdaki bağlantıyla arkadaş davet edin.",
   },
   zh: {
@@ -91,7 +91,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "玩法", how1: "登录或连接钱包。游戏需要你的余额中有 USDC（用于下注）和少量 POL（用于网络手续费）。如果没有，可通过购买充值：按钮在下方的充值卡片中。",
     how2: "在大厅选择赌注（0.05–5 USDC）和用时，点击“创建对局”并在钱包中确认两步。也可以加入他人的对局。",
     how3: "对手加入后对局自动开始。用时为整局共用，只在你走棋时计时。",
-    how4: "赢了？在对局页面或“我的对局”点击“领取”。你将获得奖池的 94%，6% 为手续费。",
+    how4: "赢了？在对局页面或“我的对局”点击“领取”。你将获得奖池的 94%。6% 的手续费让应用保持无广告。",
     how5: "和棋、取消或卡住的对局：赌注全额退还，不收手续费。可通过下方链接邀请好友。",
   },
   ar: {
@@ -102,7 +102,7 @@ const D: Record<Lang, Record<TxKey, string>> = {
     howTitle: "كيف تلعب", how1: "سجّل الدخول أو اربط محفظة. للعب يجب أن يكون في رصيدك USDC (للرهانات) وقليل من POL (لرسوم الشبكة). إن لم تكن لديك، اشحن الرصيد بالشراء: الأزرار في بطاقة الشحن أدناه.",
     how2: "في الردهة اختر الرهان (0.05–5 USDC) والوقت، اضغط «إنشاء لعبة» وأكّد خطوتين في المحفظة. أو انضم إلى لعبة غيرك.",
     how3: "عند انضمام الخصم تبدأ المباراة تلقائيًا. الوقت مشترك للمباراة كلها ويحسب فقط في دورك.",
-    how4: "فزت؟ اضغط «استلام» في شاشة اللعبة أو في «ألعابي». تحصل على 94% من الجائزة والرسوم 6%.",
+    how4: "فزت؟ اضغط «استلام» في شاشة اللعبة أو في «ألعابي». تحصل على 94% من الجائزة. رسوم 6% تُبقي التطبيق خاليًا من الإعلانات.",
     how5: "تعادل أو إلغاء أو لعبة عالقة: تُرد الرهانات كاملة دون رسوم. ادعُ صديقًا عبر الرابط أدناه.",
   },
 };

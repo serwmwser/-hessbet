@@ -7,88 +7,88 @@ import { useApp } from "@/lib/ctx";
 import type { Lang } from "@/lib/i18n";
 import { wallets } from "./Header";
 
-type T = { h1: string; sub: string; cta: string; ctaBot: string; sl: string[]; lb: string[]; how: string; st: string[]; tr: string[]; resp: string };
+type T = { net: string; h1: string; sub: string; cta: string; ctaBot: string; sl: string[]; lb: string[]; how: string; st: string[]; tr: string[]; resp: string };
 
 const D: Record<Lang, T> = {
   ru: {
-    h1: "Шахматы на USDC", sub: "Сыграйте с соперником со всего мира. Победитель получает 94% банка прямо на свой кошелёк.",
+    net: "Сеть Polygon · USDC · минимальные комиссии", h1: "Шахматы на USDC", sub: "Сыграйте с соперником со всего мира. Победитель получает 94% банка прямо на свой кошелёк.",
     cta: "Играть на USDC", ctaBot: "Тренировка с ботом — бесплатно",
     sl: ["Твой ум — твой главный актив.", "Каждый ход — решение. Каждая победа — награда.", "Думай на три хода вперёд, выигрывай в USDC.", "Докажи, кто сильнее за доской.", "Мастерство решает всё. Играй и побеждай."],
     lb: ["победителю из банка", "USDC — ставка", "режимов времени", "комиссии при ничьей"], how: "Как начать",
     st: ["Войдите или подключите кошелёк", "Создайте игру или примите вызов", "Победите и заберите выигрыш"],
-    tr: ["Ставки хранит смарт-контракт, а не мы", "Ничья и отмена: полный возврат ставки", "Выигрыш вы забираете сами кнопкой «Забрать»"],
+    tr: ["Ставки хранит смарт-контракт, а не мы", "Ничья и отмена: полный возврат ставки", "Выигрыш вы забираете сами кнопкой «Забрать»", "Комиссия 6% — плата за приложение без рекламы"],
     resp: "18+. Результат зависит от вашего мастерства, но выигрыш не гарантирован. Играйте ответственно.",
   },
   en: {
-    h1: "Chess for USDC", sub: "Play opponents from all over the world. The winner gets 94% of the pot straight to their wallet.",
+    net: "Polygon network · USDC · minimal fees", h1: "Chess for USDC", sub: "Play opponents from all over the world. The winner gets 94% of the pot straight to their wallet.",
     cta: "Play for USDC", ctaBot: "Practice with the bot — free",
     sl: ["Your mind is your greatest asset.", "Every move is a decision. Every win is a reward.", "Think three moves ahead, win in USDC.", "Prove who is stronger at the board.", "Skill decides everything. Play and win."],
     lb: ["of the pot to the winner", "USDC stake range", "time controls", "fee on a draw"], how: "How to start",
     st: ["Sign in or connect a wallet", "Create a game or accept a challenge", "Win and claim your prize"],
-    tr: ["Stakes are held by a smart contract, not by us", "Draw or cancel: full refund of your stake", "You claim your winnings yourself with one button"],
+    tr: ["Stakes are held by a smart contract, not by us", "Draw or cancel: full refund of your stake", "You claim your winnings yourself with one button", "The 6% fee keeps the app free of ads"],
     resp: "18+. The result depends on your skill, but winning is not guaranteed. Play responsibly.",
   },
   es: {
-    h1: "Ajedrez por USDC", sub: "Juega contra rivales de todo el mundo. El ganador recibe el 94% del bote directo en su monedero.",
+    net: "Red Polygon · USDC · comisiones mínimas", h1: "Ajedrez por USDC", sub: "Juega contra rivales de todo el mundo. El ganador recibe el 94% del bote directo en su monedero.",
     cta: "Jugar por USDC", ctaBot: "Practica con el bot, gratis",
     sl: ["Tu mente es tu mejor activo.", "Cada jugada es una decisión. Cada victoria, un premio.", "Piensa tres jugadas por delante y gana en USDC.", "Demuestra quién es más fuerte en el tablero.", "La habilidad lo decide todo. Juega y gana."],
     lb: ["del bote al ganador", "USDC de apuesta", "modos de tiempo", "de comisión en tablas"], how: "Cómo empezar",
     st: ["Inicia sesión o conecta un monedero", "Crea una partida o acepta un reto", "Gana y reclama tu premio"],
-    tr: ["Las apuestas las guarda un contrato inteligente, no nosotros", "Tablas o cancelación: devolución total", "Tú reclamas tus ganancias con un botón"],
+    tr: ["Las apuestas las guarda un contrato inteligente, no nosotros", "Tablas o cancelación: devolución total", "Tú reclamas tus ganancias con un botón", "La comisión del 6% mantiene la app sin anuncios"],
     resp: "+18. El resultado depende de tu habilidad, pero ganar no está garantizado. Juega con responsabilidad.",
   },
   de: {
-    h1: "Schach um USDC", sub: "Spiele gegen Gegner aus der ganzen Welt. Der Gewinner erhält 94 % des Pots direkt auf sein Wallet.",
+    net: "Polygon-Netzwerk · USDC · minimale Gebühren", h1: "Schach um USDC", sub: "Spiele gegen Gegner aus der ganzen Welt. Der Gewinner erhält 94 % des Pots direkt auf sein Wallet.",
     cta: "Um USDC spielen", ctaBot: "Training gegen den Bot, kostenlos",
     sl: ["Dein Verstand ist dein größtes Kapital.", "Jeder Zug ist eine Entscheidung. Jeder Sieg eine Belohnung.", "Denke drei Züge voraus, gewinne in USDC.", "Beweise, wer am Brett stärker ist.", "Können entscheidet alles. Spiele und gewinne."],
     lb: ["des Pots an den Gewinner", "USDC Einsatz", "Zeitmodi", "Gebühr bei Remis"], how: "So startest du",
     st: ["Anmelden oder Wallet verbinden", "Spiel erstellen oder Herausforderung annehmen", "Gewinnen und Preis abholen"],
-    tr: ["Einsätze hält ein Smart Contract, nicht wir", "Remis oder Abbruch: volle Rückerstattung", "Den Gewinn holst du selbst mit einem Klick ab"],
+    tr: ["Einsätze hält ein Smart Contract, nicht wir", "Remis oder Abbruch: volle Rückerstattung", "Den Gewinn holst du selbst mit einem Klick ab", "Die 6 % Gebühr hält die App werbefrei"],
     resp: "18+. Das Ergebnis hängt von deinem Können ab, ein Gewinn ist aber nicht garantiert. Spiele verantwortungsvoll.",
   },
   fr: {
-    h1: "Échecs pour USDC", sub: "Affrontez des adversaires du monde entier. Le gagnant reçoit 94 % de la cagnotte directement dans son portefeuille.",
+    net: "Réseau Polygon · USDC · frais minimes", h1: "Échecs pour USDC", sub: "Affrontez des adversaires du monde entier. Le gagnant reçoit 94 % de la cagnotte directement dans son portefeuille.",
     cta: "Jouer pour des USDC", ctaBot: "S’entraîner contre le bot, gratuit",
     sl: ["Votre esprit est votre meilleur atout.", "Chaque coup est une décision. Chaque victoire, une récompense.", "Voyez trois coups d’avance, gagnez en USDC.", "Prouvez qui est le plus fort sur l’échiquier.", "L’habileté décide de tout. Jouez et gagnez."],
     lb: ["de la cagnotte au gagnant", "USDC de mise", "cadences de temps", "de frais en cas de nulle"], how: "Pour commencer",
     st: ["Connectez-vous ou liez un portefeuille", "Créez une partie ou relevez un défi", "Gagnez et récupérez votre gain"],
-    tr: ["Les mises sont gardées par un smart contract, pas par nous", "Nulle ou annulation : remboursement total", "Vous récupérez vos gains vous-même en un clic"],
+    tr: ["Les mises sont gardées par un smart contract, pas par nous", "Nulle ou annulation : remboursement total", "Vous récupérez vos gains vous-même en un clic", "Les 6 % de frais gardent l’app sans publicité"],
     resp: "18+. Le résultat dépend de votre habileté, mais gagner n’est pas garanti. Jouez de façon responsable.",
   },
   pt: {
-    h1: "Xadrez por USDC", sub: "Jogue contra adversários do mundo todo. O vencedor recebe 94% do prêmio direto na carteira.",
+    net: "Rede Polygon · USDC · taxas mínimas", h1: "Xadrez por USDC", sub: "Jogue contra adversários do mundo todo. O vencedor recebe 94% do prêmio direto na carteira.",
     cta: "Jogar por USDC", ctaBot: "Treine com o bot, grátis",
     sl: ["Sua mente é o seu maior ativo.", "Cada lance é uma decisão. Cada vitória, uma recompensa.", "Pense três lances à frente e vença em USDC.", "Prove quem é mais forte no tabuleiro.", "A habilidade decide tudo. Jogue e vença."],
     lb: ["do prêmio ao vencedor", "USDC de aposta", "modos de tempo", "de taxa no empate"], how: "Como começar",
     st: ["Entre ou conecte uma carteira", "Crie um jogo ou aceite um desafio", "Vença e resgate seu prêmio"],
-    tr: ["As apostas ficam num contrato inteligente, não conosco", "Empate ou cancelamento: reembolso total", "Você mesmo resgata o prêmio com um botão"],
+    tr: ["As apostas ficam num contrato inteligente, não conosco", "Empate ou cancelamento: reembolso total", "Você mesmo resgata o prêmio com um botão", "A taxa de 6% mantém o app sem anúncios"],
     resp: "18+. O resultado depende da sua habilidade, mas vencer não é garantido. Jogue com responsabilidade.",
   },
   tr: {
-    h1: "USDC için satranç", sub: "Dünyanın her yerinden rakiplerle oynayın. Kazanan, havuzun %94’ünü doğrudan cüzdanına alır.",
+    net: "Polygon ağı · USDC · çok düşük ücretler", h1: "USDC için satranç", sub: "Dünyanın her yerinden rakiplerle oynayın. Kazanan, havuzun %94’ünü doğrudan cüzdanına alır.",
     cta: "USDC için oyna", ctaBot: "Botla antrenman, ücretsiz",
     sl: ["Zihniniz en büyük varlığınızdır.", "Her hamle bir karar. Her zafer bir ödül.", "Üç hamle ilerisini düşünün, USDC kazanın.", "Tahtada kimin güçlü olduğunu kanıtlayın.", "Beceri her şeyi belirler. Oynayın ve kazanın."],
     lb: ["havuzdan kazanana", "USDC bahis", "süre seçeneği", "beraberlikte komisyon"], how: "Nasıl başlanır",
     st: ["Giriş yapın veya cüzdan bağlayın", "Oyun oluşturun veya meydan okumayı kabul edin", "Kazanın ve ödülünüzü alın"],
-    tr: ["Bahisleri biz değil, akıllı sözleşme tutar", "Beraberlik veya iptal: tam iade", "Kazancı tek tuşla kendiniz alırsınız"],
+    tr: ["Bahisleri biz değil, akıllı sözleşme tutar", "Beraberlik veya iptal: tam iade", "Kazancı tek tuşla kendiniz alırsınız", "%6 komisyon uygulamayı reklamsız tutar"],
     resp: "18+. Sonuç becerinize bağlıdır ancak kazanç garanti değildir. Sorumlu oynayın.",
   },
   zh: {
-    h1: "用 USDC 下国际象棋", sub: "与来自世界各地的对手对弈。获胜者直接把奖池的 94% 收入自己的钱包。",
+    net: "Polygon 网络 · USDC · 极低手续费", h1: "用 USDC 下国际象棋", sub: "与来自世界各地的对手对弈。获胜者直接把奖池的 94% 收入自己的钱包。",
     cta: "开始 USDC 对弈", ctaBot: "免费练习：对战机器人",
     sl: ["你的头脑是你最大的资产。", "每一步都是决策，每一次胜利都是奖励。", "多想三步，赢取 USDC。", "在棋盘上证明谁更强。", "实力决定一切，来下棋、去获胜。"],
     lb: ["奖池归获胜者", "USDC 赌注", "种用时模式", "和棋手续费"], how: "如何开始",
     st: ["登录或连接钱包", "创建对局或接受挑战", "获胜并领取奖金"],
-    tr: ["赌注由智能合约保管，而不是我们", "和棋或取消：全额退还赌注", "奖金由你自己一键领取"],
+    tr: ["赌注由智能合约保管，而不是我们", "和棋或取消：全额退还赌注", "奖金由你自己一键领取", "6% 手续费让应用保持无广告"],
     resp: "18+。结果取决于你的棋艺，但不保证获胜。请理性游戏。",
   },
   ar: {
-    h1: "شطرنج مقابل USDC", sub: "العب ضد خصوم من كل أنحاء العالم. يحصل الفائز على 94% من الجائزة مباشرة في محفظته.",
+    net: "شبكة Polygon · USDC · رسوم منخفضة جدًا", h1: "شطرنج مقابل USDC", sub: "العب ضد خصوم من كل أنحاء العالم. يحصل الفائز على 94% من الجائزة مباشرة في محفظته.",
     cta: "العب مقابل USDC", ctaBot: "تدرّب مع الروبوت مجانًا",
     sl: ["عقلك هو أكبر أصولك.", "كل نقلة قرار، وكل فوز مكافأة.", "فكّر بثلاث نقلات مقدّمًا واربح بعملة USDC.", "أثبت من الأقوى على الرقعة.", "المهارة تحسم كل شيء. العب وانتصر."],
     lb: ["من الجائزة للفائز", "USDC للرهان", "أنماط للوقت", "رسوم عند التعادل"], how: "كيف تبدأ",
     st: ["سجّل الدخول أو اربط محفظة", "أنشئ لعبة أو اقبل تحديًا", "فُز واستلم جائزتك"],
-    tr: ["العقد الذكي يحفظ الرهانات وليس نحن", "تعادل أو إلغاء: استرداد كامل", "تستلم أرباحك بنفسك بضغطة زر"],
+    tr: ["العقد الذكي يحفظ الرهانات وليس نحن", "تعادل أو إلغاء: استرداد كامل", "تستلم أرباحك بنفسك بضغطة زر", "رسوم 6% تُبقي التطبيق خاليًا من الإعلانات"],
     resp: "+18. النتيجة تعتمد على مهارتك لكن الفوز غير مضمون. العب بمسؤولية.",
   },
 };
@@ -151,6 +151,7 @@ export default function Hero({ onBot }: { onBot: () => void }) {
 
       <div className="relative space-y-3">
         <motion.div initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", duration: 0.9 }} className="text-6xl">♞</motion.div>
+        <div className="inline-block rounded-full bg-white/10 border border-white/15 px-3 py-1 text-xs text-white/80">⬡ {x.net}</div>
         <motion.h1 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }} className="text-3xl sm:text-5xl font-extrabold tracking-tight">{x.h1}</motion.h1>
         <Slogan list={x.sl} />
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-sm sm:text-base text-white/75 max-w-xl mx-auto">{x.sub}</motion.p>
@@ -182,7 +183,7 @@ export default function Hero({ onBot }: { onBot: () => void }) {
         </div>
       </div>
 
-      <ul className="relative text-xs text-white/70 grid sm:grid-cols-3 gap-1.5">
+      <ul className="relative text-xs text-white/70 grid sm:grid-cols-2 gap-1.5">
         {x.tr.map((s, i) => <li key={i}>✓ {s}</li>)}
       </ul>
       <p className="relative text-[11px] text-white/45">{x.resp}</p>
