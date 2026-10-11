@@ -32,6 +32,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
   const oppProf = useProfile(oppAddr);
   const replay = useReplay(st?.history ?? EMPTY);
   const [intro, setIntro] = useState(true);
+  const [endOpen, setEndOpen] = useState(true);
 
   useEffect(() => {
     if (!account) return;
@@ -84,11 +85,28 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
   const drawn = st.over && !st.winner;
   const reasonText = st.reason && REASON[st.reason] ? t(REASON[st.reason]) : drawn ? t("rDraw") : "";
 
+  // итог партии показываем поверх доски
+  const overlay = st.over && endOpen ? (
+    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+      className="absolute inset-0 z-20 grid place-items-center overflow-y-auto rounded-xl bg-ink-950/85 backdrop-blur-sm p-2 text-white text-center">
+      <button aria-label="close" onClick={() => setEndOpen(false)} className="absolute top-2 end-2 z-30 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25">✕</button>
+      <div className="w-full max-w-sm space-y-2 py-2">
+        {won && <WinSplash />}
+        {lost && <LoseSplash />}
+        {drawn && <><div className="text-5xl">🤝</div><div className="text-xl font-bold">{t("drawn")}</div></>}
+        {reasonText && <div className="text-sm opacity-70">{reasonText}</div>}
+        {(won || drawn) && <Claim id={st.id} who={account.address} />}
+        <button className="btn btn-ghost w-full !bg-white/10" onClick={onExit}>{t("backLobby")}</button>
+      </div>
+    </motion.div>
+  ) : null;
+
   return (
     <div className="space-y-3">
       {intro && !st.over && st.history.length === 0 && <StartSplash white={iAmWhite} onDone={() => setIntro(false)} />}
       {/* таймер каждого игрока: общее время на партию, идёт только на своём ходу */}
       <Clock ms={rem(iAmWhite ? "b" : "w")} active={started && !st.over && st.turn !== myColor} label={`${oppProf?.name || shortAddr(opp)} · ${iAmWhite ? t("black") : t("white")}`} />
+      <div className="relative">
       <Board
         fen={replay.fen}
         orientation={iAmWhite ? "white" : "black"}
@@ -97,6 +115,8 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
         mute={!replay.isLive}
         onMove={(from, to, promotion) => send({ t: "move", from, to, promotion })}
       />
+      {overlay}
+      </div>
       <Clock ms={rem(myColor)} active={started && myTurn} label={`${t("profile")} · ${iAmWhite ? t("white") : t("black")}`} />
 
       <ReplayBar r={replay} />
@@ -121,7 +141,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
         </div>
       )}
 
-      {st.over && (
+      {st.over && !endOpen && (
         <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} className="card text-center space-y-3 !bg-gradient-to-br from-brand-500/15 to-brand-violet/15">
           {won && <WinSplash />}
           {lost && <LoseSplash />}
