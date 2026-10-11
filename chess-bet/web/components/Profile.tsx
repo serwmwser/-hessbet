@@ -6,6 +6,8 @@ import { chain, client, FAUCET_ENABLED, shortAddr, usdc, USDC_ADDRESS } from "@/
 import { BOARDS, BoardName, useApp } from "@/lib/ctx";
 import { gameUrl } from "@/lib/invite";
 import Avatar from "./Avatar";
+import BuyCrypto from "./BuyCrypto";
+import HowTo from "./HowTo";
 import MyGames from "./MyGames";
 import ProfileEditor from "./ProfileEditor";
 import Share from "./Share";
@@ -67,6 +69,9 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
               {prof?.link && <a className="text-sm text-emerald-600 dark:text-emerald-400 underline break-all" dir="ltr" href={prof.link} target="_blank" rel="noopener noreferrer nofollow">{prof.link.replace(/^https?:\/\//, "")}</a>}
             </section>
           )}
+
+          <HowTo />
+          <BuyCrypto />
 
           {FAUCET_ENABLED && (
             <section className="card space-y-2">

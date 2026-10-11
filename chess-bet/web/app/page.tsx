@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Invite from "@/components/Invite";
 import Lobby from "@/components/Lobby";
 import OnlineGame from "@/components/OnlineGame";
+import { WaitingSplash } from "@/components/Splash";
 import Profile from "@/components/Profile";
 import { fetchMine } from "@/lib/api";
 import { TERMS_URL } from "@/lib/config";
@@ -53,7 +54,7 @@ export default function Home() {
         {tab === "lobby" && <Lobby />}
         {tab === "play" && (gid !== null
           ? <OnlineGame id={gid} onExit={() => { setGid(null); setTab("lobby"); }} />
-          : <div className="card text-center space-y-1 py-10"><div className="text-4xl">{openCount ? "⏳" : "♞"}</div><div className="font-medium">{openCount ? t("waiting") : t("noActive")}</div></div>)}
+          : openCount ? <WaitingSplash /> : <div className="card text-center space-y-1 py-10"><div className="text-4xl">♞</div><div className="font-medium">{t("noActive")}</div></div>)}
         {tab === "bot" && <BotGame />}
         {tab === "profile" && <Profile onOpenGame={openGame} />}
         <p className="text-center text-xs opacity-50 mt-8">18+ · <a className="underline" href={TERMS_URL}>Terms</a> · Play responsibly</p>

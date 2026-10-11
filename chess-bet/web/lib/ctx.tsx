@@ -47,6 +47,7 @@ export function Providers({ children }: { children: ReactNode }) {
     document.documentElement.dir = isRtl(lang) ? "rtl" : "ltr";
   }, [lang]);
   useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
+  useEffect(() => { document.documentElement.dataset.board = board; }, [board]);
 
   const toast = useCallback((msg: string, kind: Toast["kind"] = "info") => {
     const id = Date.now() + Math.random();

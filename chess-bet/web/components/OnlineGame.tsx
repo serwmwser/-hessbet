@@ -7,7 +7,7 @@ import { useApp } from "@/lib/ctx";
 import { useProfile } from "@/lib/profile";
 import { Key } from "@/lib/i18n";
 import Board, { Clock, Moves } from "./Board";
-import Celebrate from "./Celebrate";
+import { LoseSplash, StartSplash, WaitingSplash, WinSplash } from "./Splash";
 import Claim from "./Claim";
 import { ReplayBar, useReplay } from "./Replay";
 
@@ -31,6 +31,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
   const oppAddr = st ? (st.white === me ? st.black : st.white) : undefined;
   const oppProf = useProfile(oppAddr);
   const replay = useReplay(st?.history ?? EMPTY);
+  const [intro, setIntro] = useState(true);
 
   useEffect(() => {
     if (!account) return;
@@ -66,7 +67,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
 
   const send = (o: object) => ws.current?.readyState === 1 && ws.current.send(JSON.stringify(o));
 
-  if (!st || !account) return <div className="space-y-3"><div className="skeleton h-12" /><div className="skeleton aspect-square max-w-[560px] mx-auto" /><div className="skeleton h-12" /></div>;
+  if (!st || !account) return <WaitingSplash />;
 
   const iAmWhite = st.white === me;
   const myColor = iAmWhite ? "w" : "b";
@@ -85,6 +86,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
 
   return (
     <div className="space-y-3">
+      {intro && !st.over && st.history.length === 0 && <StartSplash white={iAmWhite} onDone={() => setIntro(false)} />}
       {/* таймер каждого игрока: общее время на партию, идёт только на своём ходу */}
       <Clock ms={rem(iAmWhite ? "b" : "w")} active={started && !st.over && st.turn !== myColor} label={`${oppProf?.name || shortAddr(opp)} · ${iAmWhite ? t("black") : t("white")}`} />
       <Board
@@ -121,10 +123,9 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
 
       {st.over && (
         <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} className="card text-center space-y-3 !bg-gradient-to-br from-brand-500/15 to-brand-violet/15">
-          {won && <Celebrate />}
-          {lost && <div className="text-4xl">♚</div>}
-          {drawn && <div className="text-4xl">🤝</div>}
-          <div className="text-xl font-bold">{won ? t("won") : lost ? t("lost") : t("drawn")}</div>
+          {won && <WinSplash />}
+          {lost && <LoseSplash />}
+          {drawn && <><div className="text-4xl">🤝</div><div className="text-xl font-bold">{t("drawn")}</div></>}
           {reasonText && <div className="text-sm opacity-70">{reasonText}</div>}
           {(won || drawn) && <Claim id={st.id} who={account.address} />}
           <button className="btn btn-ghost w-full" onClick={onExit}>{t("backLobby")}</button>
