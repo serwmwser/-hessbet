@@ -15,6 +15,11 @@ const {
   BLOCKED_COUNTRIES = "",
   STATE_FILE = "./data/state.json",
   PROFILES_FILE = "./data/profiles.json",
+  FAUCET_PK = "",
+  USDC_TOKEN = "",
+  FAUCET_NATIVE = "1",
+  FAUCET_USDC = "1000",
+  SYNC_MS = "60000",
 } = process.env;
 if (!RPC_URL || !ESCROW || !ORACLE_PK) {
   console.error("Нужны RPC_URL, ESCROW, ORACLE_PK (см. .env.example)");
@@ -310,6 +315,27 @@ const geoBlocked = (req: http.IncomingMessage) => {
   return !!c && blocked.includes(c);
 };
 
+// ---------- кран тестовых токенов (включается только если заданы FAUCET_PK и USDC_TOKEN) ----------
+const faucetWallet = FAUCET_PK ? new ethers.Wallet(FAUCET_PK, provider) : null;
+const faucetUsdc = faucetWallet && USDC_TOKEN ? new ethers.Contract(USDC_TOKEN, ["function mint(address to,uint256 amount)"], faucetWallet) : null;
+let faucetQueue: Promise<unknown> = Promise.resolve();
+const lastDrip = new Map<string, number>();
+async function drip(addr: string): Promise<string | null> {
+  if (!faucetWallet || !faucetUsdc) return "faucet_off";
+  if (!ethers.isAddress(addr)) return "bad_address";
+  const a = ethers.getAddress(addr);
+  const now = Date.now();
+  if (now - (lastDrip.get(lc(a)) ?? 0) < 30_000) return "too_often";
+  lastDrip.set(lc(a), now);
+  const job = faucetQueue.then(async () => {
+    let n = await provider.getTransactionCount(faucetWallet.address, "latest");
+    await (await faucetWallet.sendTransaction({ to: a, value: ethers.parseEther(FAUCET_NATIVE), nonce: n++ })).wait();
+    await (await faucetUsdc.mint(a, ethers.parseUnits(FAUCET_USDC, 6), { nonce: n })).wait();
+  });
+  faucetQueue = job.catch(() => {});
+  try { await job; return null; } catch (e) { console.error("faucet:", (e as Error).message); return "failed"; }
+}
+
 function stats(addr: string) {
   const mine = done.filter((d) => d.white === addr || d.black === addr).sort((a, b) => b.at - a.at);
   let wins = 0, losses = 0, draws = 0, net = 0;
@@ -334,6 +360,17 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://x");
   const parts = url.pathname.split("/").filter(Boolean);
   const out = (o: unknown) => res.end(JSON.stringify(o));
+  if (req.method === "POST" && parts[0] === "faucet") {
+    let body = "";
+    req.on("data", (c) => { body += c; if (body.length > 2_000) req.destroy(); });
+    req.on("end", async () => {
+      let m: any;
+      try { m = JSON.parse(body); } catch { return out({ ok: false, error: "bad_json" }); }
+      const e = await drip(String(m.address ?? ""));
+      out(e ? { ok: false, error: e } : { ok: true });
+    });
+    return;
+  }
   if (req.method === "POST" && parts[0] === "profile") {
     if (origins.length && !originOk(origin)) { res.writeHead(403).end("{}"); return; }
     let body = "";
@@ -494,7 +531,7 @@ async function main() {
     else void sync().catch(console.error);
   });
   escrow.on("GameCancelled", (id: bigint) => { open.delete(Number(id)); });
-  setInterval(() => void sync().catch((e) => console.error("sync:", e.message)), 60_000);
+  setInterval(() => void sync().catch((e) => console.error("sync:", e.message)), Math.max(1000, Number(SYNC_MS) || 60_000));
   server.listen(Number(PORT), () => console.log(`server :${PORT}, oracle ${wallet.address}, fee ${feeBps} bps`));
 }
 main().catch((e) => { console.error(e); process.exit(1); });

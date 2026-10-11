@@ -22,3 +22,7 @@ export async function postProfile(body: Record<string, unknown>): Promise<{ ok: 
   const r = await fetch(API_URL + "/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   return r.json();
 }
+export async function postFaucet(address: string): Promise<{ ok: boolean; error?: string }> {
+  const r = await fetch(API_URL + "/faucet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address }) });
+  return r.json();
+}

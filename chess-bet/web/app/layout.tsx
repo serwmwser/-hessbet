@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Play chess against other players for USDC on Polygon, or practise against a bot for free.",
   applicationName: "Chess Bet",
 };
-export const viewport: Viewport = { themeColor: "#07090f", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#060a1c", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

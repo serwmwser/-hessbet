@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useActiveAccount, useWalletBalance } from "thirdweb/react";
-import { fetchHistory, fetchProfile, DoneGame, ProfileData, Stats } from "@/lib/api";
-import { chain, client, shortAddr, usdc, USDC_ADDRESS } from "@/lib/config";
+import { fetchHistory, fetchProfile, postFaucet, DoneGame, ProfileData, Stats } from "@/lib/api";
+import { chain, client, FAUCET_ENABLED, shortAddr, usdc, USDC_ADDRESS } from "@/lib/config";
 import { BOARDS, BoardName, useApp } from "@/lib/ctx";
 import { gameUrl } from "@/lib/invite";
 import Avatar from "./Avatar";
@@ -11,7 +11,7 @@ import ProfileEditor from "./ProfileEditor";
 import Share from "./Share";
 
 export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => void }) {
-  const { t, board, setBoard } = useApp();
+  const { t, board, setBoard, toast } = useApp();
   const account = useActiveAccount();
   const me = account?.address;
   const pol = useWalletBalance({ client, chain, address: me });
@@ -19,6 +19,14 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
   const [data, setData] = useState<{ games: DoneGame[]; stats: Stats } | null>(null);
   const [prof, setProf] = useState<ProfileData | null>(null);
   const [editing, setEditing] = useState(false);
+  const [faucetBusy, setFaucetBusy] = useState(false);
+  const getTest = async () => {
+    if (!me) return;
+    setFaucetBusy(true);
+    try { const r = await postFaucet(me); toast(r.ok ? t("testTokensDone") : t("testTokensFail"), r.ok ? "ok" : "err"); }
+    catch { toast(t("testTokensFail"), "err"); }
+    finally { setFaucetBusy(false); }
+  };
   const [site, setSite] = useState("");
   useEffect(() => { setSite(`${location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/`); }, []);
   useEffect(() => {
@@ -57,6 +65,14 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
               </div>
               {prof?.bio && <p className="text-sm opacity-80 break-words">{prof.bio}</p>}
               {prof?.link && <a className="text-sm text-emerald-600 dark:text-emerald-400 underline break-all" dir="ltr" href={prof.link} target="_blank" rel="noopener noreferrer nofollow">{prof.link.replace(/^https?:\/\//, "")}</a>}
+            </section>
+          )}
+
+          {FAUCET_ENABLED && (
+            <section className="card space-y-2">
+              <h2 className="text-lg font-bold">{t("testTokens")}</h2>
+              <p className="text-sm opacity-70">{t("testTokensHint")}</p>
+              <button className="btn btn-primary" disabled={faucetBusy} onClick={getTest}>{t("testTokensGet")}</button>
             </section>
           )}
 

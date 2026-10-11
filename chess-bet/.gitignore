@@ -11,3 +11,6 @@ data/
 *.log
 web/public/stockfish.js
 EOFwallets.json
+oracle.key
+local.json
+contracts/local.json
