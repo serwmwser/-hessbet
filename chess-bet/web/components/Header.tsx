@@ -5,7 +5,7 @@ import { chain, client } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
 import { LANGS, Lang } from "@/lib/i18n";
 
-const wallets = [
+export const wallets = [
   inAppWallet({ auth: { options: ["email", "google", "apple", "passkey"] } }),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),

@@ -4,6 +4,7 @@ import { useActiveAccount } from "thirdweb/react";
 import BotGame from "@/components/BotGame";
 import BottomNav, { Tab } from "@/components/BottomNav";
 import Header from "@/components/Header";
+import Hero from "@/components/Hero";
 import Invite from "@/components/Invite";
 import Lobby from "@/components/Lobby";
 import OnlineGame from "@/components/OnlineGame";
@@ -51,7 +52,7 @@ export default function Home() {
       <Header />
       <main className="mx-auto max-w-3xl px-3 pt-4 pb-32">
         {inviteId !== null && <Invite id={inviteId} onClose={() => setInviteId(null)} />}
-        {tab === "lobby" && <Lobby />}
+        {tab === "lobby" && <div className="space-y-4"><Hero onBot={() => setTab("bot")} /><Lobby /></div>}
         {tab === "play" && (gid !== null
           ? <OnlineGame id={gid} onExit={() => { setGid(null); setTab("lobby"); }} />
           : openCount ? <WaitingSplash /> : <div className="card text-center space-y-1 py-10"><div className="text-4xl">♞</div><div className="font-medium">{t("noActive")}</div></div>)}

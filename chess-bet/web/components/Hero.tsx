@@ -1,0 +1,191 @@
+"use client";
+import { animate, AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useActiveAccount, useConnectModal } from "thirdweb/react";
+import { chain, client } from "@/lib/config";
+import { useApp } from "@/lib/ctx";
+import type { Lang } from "@/lib/i18n";
+import { wallets } from "./Header";
+
+type T = { h1: string; sub: string; cta: string; ctaBot: string; sl: string[]; lb: string[]; how: string; st: string[]; tr: string[]; resp: string };
+
+const D: Record<Lang, T> = {
+  ru: {
+    h1: "Шахматы на USDC", sub: "Сыграйте с соперником со всего мира. Победитель получает 94% банка прямо на свой кошелёк.",
+    cta: "Играть на USDC", ctaBot: "Тренировка с ботом — бесплатно",
+    sl: ["Твой ум — твой главный актив.", "Каждый ход — решение. Каждая победа — награда.", "Думай на три хода вперёд, выигрывай в USDC.", "Докажи, кто сильнее за доской.", "Мастерство решает всё. Играй и побеждай."],
+    lb: ["победителю из банка", "USDC — ставка", "режимов времени", "комиссии при ничьей"], how: "Как начать",
+    st: ["Войдите по почте за минуту", "Создайте игру или примите вызов", "Победите и заберите выигрыш"],
+    tr: ["Ставки хранит смарт-контракт, а не мы", "Ничья и отмена: полный возврат ставки", "Выигрыш вы забираете сами кнопкой «Забрать»"],
+    resp: "18+. Результат зависит от вашего мастерства, но выигрыш не гарантирован. Играйте ответственно.",
+  },
+  en: {
+    h1: "Chess for USDC", sub: "Play opponents from all over the world. The winner gets 94% of the pot straight to their wallet.",
+    cta: "Play for USDC", ctaBot: "Practice with the bot — free",
+    sl: ["Your mind is your greatest asset.", "Every move is a decision. Every win is a reward.", "Think three moves ahead, win in USDC.", "Prove who is stronger at the board.", "Skill decides everything. Play and win."],
+    lb: ["of the pot to the winner", "USDC stake range", "time controls", "fee on a draw"], how: "How to start",
+    st: ["Sign in with email in a minute", "Create a game or accept a challenge", "Win and claim your prize"],
+    tr: ["Stakes are held by a smart contract, not by us", "Draw or cancel: full refund of your stake", "You claim your winnings yourself with one button"],
+    resp: "18+. The result depends on your skill, but winning is not guaranteed. Play responsibly.",
+  },
+  es: {
+    h1: "Ajedrez por USDC", sub: "Juega contra rivales de todo el mundo. El ganador recibe el 94% del bote directo en su monedero.",
+    cta: "Jugar por USDC", ctaBot: "Practica con el bot, gratis",
+    sl: ["Tu mente es tu mejor activo.", "Cada jugada es una decisión. Cada victoria, un premio.", "Piensa tres jugadas por delante y gana en USDC.", "Demuestra quién es más fuerte en el tablero.", "La habilidad lo decide todo. Juega y gana."],
+    lb: ["del bote al ganador", "USDC de apuesta", "modos de tiempo", "de comisión en tablas"], how: "Cómo empezar",
+    st: ["Entra con tu correo en un minuto", "Crea una partida o acepta un reto", "Gana y reclama tu premio"],
+    tr: ["Las apuestas las guarda un contrato inteligente, no nosotros", "Tablas o cancelación: devolución total", "Tú reclamas tus ganancias con un botón"],
+    resp: "+18. El resultado depende de tu habilidad, pero ganar no está garantizado. Juega con responsabilidad.",
+  },
+  de: {
+    h1: "Schach um USDC", sub: "Spiele gegen Gegner aus der ganzen Welt. Der Gewinner erhält 94 % des Pots direkt auf sein Wallet.",
+    cta: "Um USDC spielen", ctaBot: "Training gegen den Bot, kostenlos",
+    sl: ["Dein Verstand ist dein größtes Kapital.", "Jeder Zug ist eine Entscheidung. Jeder Sieg eine Belohnung.", "Denke drei Züge voraus, gewinne in USDC.", "Beweise, wer am Brett stärker ist.", "Können entscheidet alles. Spiele und gewinne."],
+    lb: ["des Pots an den Gewinner", "USDC Einsatz", "Zeitmodi", "Gebühr bei Remis"], how: "So startest du",
+    st: ["In einer Minute per E-Mail anmelden", "Spiel erstellen oder Herausforderung annehmen", "Gewinnen und Preis abholen"],
+    tr: ["Einsätze hält ein Smart Contract, nicht wir", "Remis oder Abbruch: volle Rückerstattung", "Den Gewinn holst du selbst mit einem Klick ab"],
+    resp: "18+. Das Ergebnis hängt von deinem Können ab, ein Gewinn ist aber nicht garantiert. Spiele verantwortungsvoll.",
+  },
+  fr: {
+    h1: "Échecs pour USDC", sub: "Affrontez des adversaires du monde entier. Le gagnant reçoit 94 % de la cagnotte directement dans son portefeuille.",
+    cta: "Jouer pour des USDC", ctaBot: "S’entraîner contre le bot, gratuit",
+    sl: ["Votre esprit est votre meilleur atout.", "Chaque coup est une décision. Chaque victoire, une récompense.", "Voyez trois coups d’avance, gagnez en USDC.", "Prouvez qui est le plus fort sur l’échiquier.", "L’habileté décide de tout. Jouez et gagnez."],
+    lb: ["de la cagnotte au gagnant", "USDC de mise", "cadences de temps", "de frais en cas de nulle"], how: "Pour commencer",
+    st: ["Connectez-vous par e-mail en une minute", "Créez une partie ou relevez un défi", "Gagnez et récupérez votre gain"],
+    tr: ["Les mises sont gardées par un smart contract, pas par nous", "Nulle ou annulation : remboursement total", "Vous récupérez vos gains vous-même en un clic"],
+    resp: "18+. Le résultat dépend de votre habileté, mais gagner n’est pas garanti. Jouez de façon responsable.",
+  },
+  pt: {
+    h1: "Xadrez por USDC", sub: "Jogue contra adversários do mundo todo. O vencedor recebe 94% do prêmio direto na carteira.",
+    cta: "Jogar por USDC", ctaBot: "Treine com o bot, grátis",
+    sl: ["Sua mente é o seu maior ativo.", "Cada lance é uma decisão. Cada vitória, uma recompensa.", "Pense três lances à frente e vença em USDC.", "Prove quem é mais forte no tabuleiro.", "A habilidade decide tudo. Jogue e vença."],
+    lb: ["do prêmio ao vencedor", "USDC de aposta", "modos de tempo", "de taxa no empate"], how: "Como começar",
+    st: ["Entre com e-mail em um minuto", "Crie um jogo ou aceite um desafio", "Vença e resgate seu prêmio"],
+    tr: ["As apostas ficam num contrato inteligente, não conosco", "Empate ou cancelamento: reembolso total", "Você mesmo resgata o prêmio com um botão"],
+    resp: "18+. O resultado depende da sua habilidade, mas vencer não é garantido. Jogue com responsabilidade.",
+  },
+  tr: {
+    h1: "USDC için satranç", sub: "Dünyanın her yerinden rakiplerle oynayın. Kazanan, havuzun %94’ünü doğrudan cüzdanına alır.",
+    cta: "USDC için oyna", ctaBot: "Botla antrenman, ücretsiz",
+    sl: ["Zihniniz en büyük varlığınızdır.", "Her hamle bir karar. Her zafer bir ödül.", "Üç hamle ilerisini düşünün, USDC kazanın.", "Tahtada kimin güçlü olduğunu kanıtlayın.", "Beceri her şeyi belirler. Oynayın ve kazanın."],
+    lb: ["havuzdan kazanana", "USDC bahis", "süre seçeneği", "beraberlikte komisyon"], how: "Nasıl başlanır",
+    st: ["Bir dakikada e-postayla giriş yapın", "Oyun oluşturun veya meydan okumayı kabul edin", "Kazanın ve ödülünüzü alın"],
+    tr: ["Bahisleri biz değil, akıllı sözleşme tutar", "Beraberlik veya iptal: tam iade", "Kazancı tek tuşla kendiniz alırsınız"],
+    resp: "18+. Sonuç becerinize bağlıdır ancak kazanç garanti değildir. Sorumlu oynayın.",
+  },
+  zh: {
+    h1: "用 USDC 下国际象棋", sub: "与来自世界各地的对手对弈。获胜者直接把奖池的 94% 收入自己的钱包。",
+    cta: "开始 USDC 对弈", ctaBot: "免费练习：对战机器人",
+    sl: ["你的头脑是你最大的资产。", "每一步都是决策，每一次胜利都是奖励。", "多想三步，赢取 USDC。", "在棋盘上证明谁更强。", "实力决定一切，来下棋、去获胜。"],
+    lb: ["奖池归获胜者", "USDC 赌注", "种用时模式", "和棋手续费"], how: "如何开始",
+    st: ["一分钟用邮箱登录", "创建对局或接受挑战", "获胜并领取奖金"],
+    tr: ["赌注由智能合约保管，而不是我们", "和棋或取消：全额退还赌注", "奖金由你自己一键领取"],
+    resp: "18+。结果取决于你的棋艺，但不保证获胜。请理性游戏。",
+  },
+  ar: {
+    h1: "شطرنج مقابل USDC", sub: "العب ضد خصوم من كل أنحاء العالم. يحصل الفائز على 94% من الجائزة مباشرة في محفظته.",
+    cta: "العب مقابل USDC", ctaBot: "تدرّب مع الروبوت مجانًا",
+    sl: ["عقلك هو أكبر أصولك.", "كل نقلة قرار، وكل فوز مكافأة.", "فكّر بثلاث نقلات مقدّمًا واربح بعملة USDC.", "أثبت من الأقوى على الرقعة.", "المهارة تحسم كل شيء. العب وانتصر."],
+    lb: ["من الجائزة للفائز", "USDC للرهان", "أنماط للوقت", "رسوم عند التعادل"], how: "كيف تبدأ",
+    st: ["سجّل بالبريد خلال دقيقة", "أنشئ لعبة أو اقبل تحديًا", "فُز واستلم جائزتك"],
+    tr: ["العقد الذكي يحفظ الرهانات وليس نحن", "تعادل أو إلغاء: استرداد كامل", "تستلم أرباحك بنفسك بضغطة زر"],
+    resp: "+18. النتيجة تعتمد على مهارتك لكن الفوز غير مضمون. العب بمسؤولية.",
+  },
+};
+
+const PIECES = ["♞", "♜", "♝", "♛", "♚", "♟", "♘"];
+
+function Count({ to }: { to: number }) {
+  const [v, setV] = useState(0);
+  useEffect(() => { const c = animate(0, to, { duration: 1.4, onUpdate: (l) => setV(Math.round(l)) }); return () => c.stop(); }, [to]);
+  return <>{v}</>;
+}
+
+function Slogan({ list, className = "" }: { list: string[]; className?: string }) {
+  const [i, setI] = useState(0);
+  useEffect(() => { const t = setInterval(() => setI((x) => x + 1), 3800); return () => clearInterval(t); }, []);
+  const k = i % list.length;
+  return (
+    <div className={`min-h-[3.2rem] grid place-items-center ${className}`} aria-live="polite">
+      <AnimatePresence mode="wait">
+        <motion.p key={k} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }} transition={{ duration: 0.45 }}
+          className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-violet-300 via-fuchsia-300 to-sky-300 bg-clip-text text-transparent">
+          {list[k]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default function Hero({ onBot }: { onBot: () => void }) {
+  const { lang, dark } = useApp();
+  const account = useActiveAccount();
+  const { connect } = useConnectModal();
+  const reduce = useReducedMotion();
+  const x = D[lang] ?? D.en;
+  const start = () => { void connect({ client, chain, wallets, theme: dark ? "dark" : "light", size: "compact", title: "Chess Bet" }); };
+
+  // Уже вошедшему игроку показываем только короткий мотивирующий слоган
+  if (account) {
+    return (
+      <div className="card text-center !py-3 !bg-gradient-to-r from-brand-600/20 to-brand-violet/20">
+        <Slogan list={x.sl} />
+      </div>
+    );
+  }
+
+  return (
+    <section className="relative overflow-hidden rounded-xl2 border border-violet-300/20 text-white text-center px-5 py-9 sm:py-12 space-y-6 bg-gradient-to-br from-ink-700 via-ink-900 to-ink-950 shadow-glow">
+      {/* фон: светящиеся шары, шахматная сетка и парящие фигуры */}
+      <div aria-hidden className="absolute inset-0 pointer-events-none">
+        {!reduce && <>
+          <motion.span className="absolute -top-24 -start-16 w-72 h-72 rounded-full bg-violet-600/40 blur-3xl" animate={{ x: [0, 40, 0], y: [0, 30, 0] }} transition={{ duration: 9, repeat: Infinity }} />
+          <motion.span className="absolute -bottom-24 -end-16 w-72 h-72 rounded-full bg-sky-500/30 blur-3xl" animate={{ x: [0, -40, 0], y: [0, -20, 0] }} transition={{ duration: 11, repeat: Infinity }} />
+        </>}
+        <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "conic-gradient(#fff 25%, transparent 0 50%, #fff 0 75%, transparent 0)", backgroundSize: "56px 56px", maskImage: "radial-gradient(circle at 50% 40%, #000, transparent 75%)", WebkitMaskImage: "radial-gradient(circle at 50% 40%, #000, transparent 75%)" }} />
+        {!reduce && PIECES.map((p, i) => (
+          <motion.span key={i} className="absolute text-3xl sm:text-4xl opacity-20 select-none" style={{ left: `${6 + i * 14}%`, top: `${i % 2 ? 68 : 8}%` }}
+            animate={{ y: [0, -22, 0], rotate: [-10, 10, -10] }} transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: "easeInOut" }}>{p}</motion.span>
+        ))}
+      </div>
+
+      <div className="relative space-y-3">
+        <motion.div initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", duration: 0.9 }} className="text-6xl">♞</motion.div>
+        <motion.h1 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }} className="text-3xl sm:text-5xl font-extrabold tracking-tight">{x.h1}</motion.h1>
+        <Slogan list={x.sl} />
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-sm sm:text-base text-white/75 max-w-xl mx-auto">{x.sub}</motion.p>
+      </div>
+
+      <div className="relative flex flex-col sm:flex-row gap-3 justify-center">
+        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={start} className="btn btn-primary text-base px-7 py-3.5 shadow-glow">♛ {x.cta}</motion.button>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onBot} className="btn bg-white/10 hover:bg-white/20 text-white text-base px-6 py-3.5">🤖 {x.ctaBot}</motion.button>
+      </div>
+
+      <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[<><Count to={94} />%</>, "0.05–5", "6", "0%"].map((v, i) => (
+          <motion.div key={i} initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 + i * 0.1 }} className="rounded-2xl bg-white/5 border border-white/10 py-3 px-2">
+            <div className="mono text-2xl font-extrabold bg-gradient-to-r from-violet-300 to-sky-300 bg-clip-text text-transparent" dir="ltr">{v}</div>
+            <div className="text-[11px] text-white/65 leading-tight mt-0.5">{x.lb[i]}</div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="relative text-start space-y-2">
+        <div className="text-xs uppercase tracking-wider text-white/50 text-center">{x.how}</div>
+        <div className="grid sm:grid-cols-3 gap-2">
+          {x.st.map((s, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-3 py-2.5">
+              <span className="shrink-0 w-7 h-7 grid place-items-center rounded-full bg-gradient-to-r from-brand-600 to-brand-violet text-xs font-bold">{i + 1}</span>
+              <span className="text-sm">{s}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <ul className="relative text-xs text-white/70 grid sm:grid-cols-3 gap-1.5">
+        {x.tr.map((s, i) => <li key={i}>✓ {s}</li>)}
+      </ul>
+      <p className="relative text-[11px] text-white/45">{x.resp}</p>
+    </section>
+  );
+}
