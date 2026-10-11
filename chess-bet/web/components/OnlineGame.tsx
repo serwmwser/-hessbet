@@ -4,8 +4,12 @@ import { motion } from "framer-motion";
 import { useActiveAccount } from "thirdweb/react";
 import { shortAddr, usdc, WS_URL } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
+import { useProfile } from "@/lib/profile";
 import { Key } from "@/lib/i18n";
 import Board, { Clock, Moves } from "./Board";
+import Celebrate from "./Celebrate";
+import Claim from "./Claim";
+import { ReplayBar, useReplay } from "./Replay";
 
 type State = {
   t: "state"; id: number; fen: string; history: string[]; lastMove: { from: string; to: string } | null;
@@ -13,7 +17,8 @@ type State = {
   over: boolean; reason: string | null; winner: string | null; drawOffer: string | null; feeBps: number;
 };
 
-const REASON: Record<string, Key> = { checkmate: "rChk", timeout: "rTime", resign: "rRes" };
+const REASON: Record<string, Key> = { checkmate: "rChk", timeout: "rTime", resign: "rRes", timeout_draw: "rTimeDraw", abort: "rAbort" };
+const EMPTY: string[] = [];
 
 export default function OnlineGame({ id, onExit }: { id: number; onExit: () => void }) {
   const { t, toast } = useApp();
@@ -22,8 +27,10 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
   const [, tick] = useState(0);
   const recv = useRef(0);
   const ws = useRef<WebSocket | null>(null);
-  const addr = account?.address;
-  const me = addr?.toLowerCase();
+  const me = account?.address.toLowerCase();
+  const oppAddr = st ? (st.white === me ? st.black : st.white) : undefined;
+  const oppProf = useProfile(oppAddr);
+  const replay = useReplay(st?.history ?? EMPTY);
 
   useEffect(() => {
     if (!account) return;
@@ -54,33 +61,43 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
     return () => { closed = true; clearTimeout(retry); ws.current?.close(); };
   }, [account, id, toast]);
 
+  // часы обновляются локально между сообщениями сервера
   useEffect(() => { const i = setInterval(() => tick((x) => x + 1), 250); return () => clearInterval(i); }, []);
 
   const send = (o: object) => ws.current?.readyState === 1 && ws.current.send(JSON.stringify(o));
 
-  if (!st) return <div className="space-y-3"><div className="skeleton h-12" /><div className="skeleton aspect-square max-w-[560px] mx-auto" /><div className="skeleton h-12" /></div>;
+  if (!st || !account) return <div className="space-y-3"><div className="skeleton h-12" /><div className="skeleton aspect-square max-w-[560px] mx-auto" /><div className="skeleton h-12" /></div>;
 
   const iAmWhite = st.white === me;
   const myColor = iAmWhite ? "w" : "b";
   const opp = iAmWhite ? st.black : st.white;
-  const elapsed = st.over ? 0 : Date.now() - recv.current;
+  // часы стоят до первого хода белых; первый ход время не расходует
+  const started = st.history.length > 0;
+  const elapsed = st.over || !started ? 0 : Date.now() - recv.current;
   const rem = (c: "w" | "b") => st.clock[c] - (!st.over && st.turn === c ? elapsed : 0);
   const myTurn = !st.over && st.turn === myColor;
   const bet = Number(st.bet);
-  const payout = bet * 2 - Math.floor((bet * 2 * st.feeBps) / 10_000);
   const offerFromOpp = !!st.drawOffer && st.drawOffer !== me;
+  const won = st.over && st.winner === me;
+  const lost = st.over && !!st.winner && st.winner !== me;
+  const drawn = st.over && !st.winner;
+  const reasonText = st.reason && REASON[st.reason] ? t(REASON[st.reason]) : drawn ? t("rDraw") : "";
 
   return (
     <div className="space-y-3">
-      <Clock ms={rem(iAmWhite ? "b" : "w")} active={!st.over && st.turn !== myColor} label={`${shortAddr(opp)} · ${iAmWhite ? t("black") : t("white")}`} />
+      {/* таймер каждого игрока: общее время на партию, идёт только на своём ходу */}
+      <Clock ms={rem(iAmWhite ? "b" : "w")} active={started && !st.over && st.turn !== myColor} label={`${oppProf?.name || shortAddr(opp)} · ${iAmWhite ? t("black") : t("white")}`} />
       <Board
-        fen={st.fen}
+        fen={replay.fen}
         orientation={iAmWhite ? "white" : "black"}
-        lastMove={st.lastMove}
-        disabled={!myTurn}
+        lastMove={replay.last}
+        disabled={!myTurn || !replay.isLive}
+        mute={!replay.isLive}
         onMove={(from, to, promotion) => send({ t: "move", from, to, promotion })}
       />
-      <Clock ms={rem(myColor)} active={myTurn} label={`${t("profile")} · ${iAmWhite ? t("white") : t("black")}`} />
+      <Clock ms={rem(myColor)} active={started && myTurn} label={`${t("profile")} · ${iAmWhite ? t("white") : t("black")}`} />
+
+      <ReplayBar r={replay} />
 
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{st.over ? "" : myTurn ? t("yourTurn") : t("oppTurn")}</span>
@@ -103,12 +120,14 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
       )}
 
       {st.over && (
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="card text-center space-y-2 !bg-gradient-to-br from-brand-500/15 to-brand-violet/15">
-          <div className="text-3xl">{st.winner ? (st.winner === me ? "🏆" : "♚") : "🤝"}</div>
-          <div className="text-xl font-bold">{st.winner ? (st.winner === me ? t("won") : t("lost")) : t("drawn")}</div>
-          <div className="text-sm opacity-70">{st.reason && REASON[st.reason] ? t(REASON[st.reason]) : st.reason === "agreement" || st.winner === null ? t("rDraw") : ""}</div>
-          {st.winner === me && <div className="mono text-emerald-500 font-bold">+{usdc(payout)} USDC</div>}
-          <button className="btn btn-primary w-full" onClick={onExit}>{t("backLobby")}</button>
+        <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} className="card text-center space-y-3 !bg-gradient-to-br from-brand-500/15 to-brand-violet/15">
+          {won && <Celebrate />}
+          {lost && <div className="text-4xl">♚</div>}
+          {drawn && <div className="text-4xl">🤝</div>}
+          <div className="text-xl font-bold">{won ? t("won") : lost ? t("lost") : t("drawn")}</div>
+          {reasonText && <div className="text-sm opacity-70">{reasonText}</div>}
+          {(won || drawn) && <Claim id={st.id} who={account.address} />}
+          <button className="btn btn-ghost w-full" onClick={onExit}>{t("backLobby")}</button>
         </motion.div>
       )}
     </div>

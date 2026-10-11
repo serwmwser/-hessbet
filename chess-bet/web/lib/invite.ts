@@ -22,7 +22,7 @@ export function newInvite() {
 export const keyForSigner = (signer: string): string | undefined => read()[signer.toLowerCase()];
 
 /** Ссылка на игру. Ключ приватной игры кладётся во фрагмент (#k=...), он не уходит на сервер сайта. */
-export const gameUrl = (id: number, key?: string) => `${location.origin}/?game=${id}${key ? `#k=${key}` : ""}`;
+export const gameUrl = (id: number, key?: string) => `${location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/?game=${id}${key ? `#k=${key}` : ""}`;
 
 export const keyFromHash = (): string | null => {
   const m = /[#&]k=(0x[0-9a-fA-F]{64})/.exec(location.hash);

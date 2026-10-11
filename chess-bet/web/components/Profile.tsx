@@ -1,17 +1,30 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useActiveAccount, useWalletBalance } from "thirdweb/react";
-import { fetchHistory, DoneGame, Stats } from "@/lib/api";
+import { fetchHistory, fetchProfile, DoneGame, ProfileData, Stats } from "@/lib/api";
 import { chain, client, shortAddr, usdc, USDC_ADDRESS } from "@/lib/config";
 import { BOARDS, BoardName, useApp } from "@/lib/ctx";
+import { gameUrl } from "@/lib/invite";
+import Avatar from "./Avatar";
+import MyGames from "./MyGames";
+import ProfileEditor from "./ProfileEditor";
+import Share from "./Share";
 
-export default function Profile() {
+export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => void }) {
   const { t, board, setBoard } = useApp();
   const account = useActiveAccount();
   const me = account?.address;
   const pol = useWalletBalance({ client, chain, address: me });
   const usd = useWalletBalance({ client, chain, address: me, tokenAddress: USDC_ADDRESS });
   const [data, setData] = useState<{ games: DoneGame[]; stats: Stats } | null>(null);
+  const [prof, setProf] = useState<ProfileData | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [site, setSite] = useState("");
+  useEffect(() => { setSite(`${location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/`); }, []);
+  useEffect(() => {
+    if (!me) { setProf(null); return; }
+    fetchProfile(me.toLowerCase()).then(setProf).catch(() => {});
+  }, [me]);
 
   useEffect(() => {
     if (!me) { setData(null); return; }
@@ -30,6 +43,30 @@ export default function Profile() {
         <div className="card text-center opacity-80">{t("signIn")}</div>
       ) : (
         <>
+          {editing ? (
+            <ProfileEditor initial={prof} onSaved={(p) => { setProf(p); setEditing(false); }} onClose={() => setEditing(false)} />
+          ) : (
+            <section className="card space-y-2">
+              <div className="flex items-center gap-3">
+                <Avatar src={prof?.avatar} name={prof?.name || me.slice(2)} size={64} />
+                <div className="min-w-0 me-auto">
+                  <div className="text-lg font-bold truncate">{prof?.name || t("player")}</div>
+                  <div className="mono text-xs opacity-60" dir="ltr">{shortAddr(me)}</div>
+                </div>
+                <button className="chip chip-on" onClick={() => setEditing(true)}>{t("editProfile")}</button>
+              </div>
+              {prof?.bio && <p className="text-sm opacity-80 break-words">{prof.bio}</p>}
+              {prof?.link && <a className="text-sm text-emerald-600 dark:text-emerald-400 underline break-all" dir="ltr" href={prof.link} target="_blank" rel="noopener noreferrer nofollow">{prof.link.replace(/^https?:\/\//, "")}</a>}
+            </section>
+          )}
+
+          <section className="card space-y-2">
+            <h2 className="text-lg font-bold">{t("inviteFriend")}</h2>
+            <p className="text-sm opacity-70">{t("inviteHint")}</p>
+            {site && <Share url={site} text={t("inviteFriendText")} />}
+          </section>
+
+          <MyGames onOpenGame={onOpenGame} />
           <section className="card space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">{t("balance")}</h2>

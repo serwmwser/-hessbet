@@ -4,6 +4,7 @@ import { useActiveAccount } from "thirdweb/react";
 import BotGame from "@/components/BotGame";
 import BottomNav, { Tab } from "@/components/BottomNav";
 import Header from "@/components/Header";
+import Invite from "@/components/Invite";
 import Lobby from "@/components/Lobby";
 import OnlineGame from "@/components/OnlineGame";
 import Profile from "@/components/Profile";
@@ -17,7 +18,14 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("lobby");
   const [gid, setGid] = useState<number | null>(null);
   const [openCount, setOpenCount] = useState(0);
+  const [inviteId, setInviteId] = useState<number | null>(null);
   const addr = account?.address.toLowerCase();
+
+  // Ссылка-приглашение: /?game=ID (для приватных игр ключ в #k=...)
+  useEffect(() => {
+    const p = new URLSearchParams(location.search).get("game");
+    if (p && /^\d+$/.test(p)) setInviteId(Number(p));
+  }, []);
 
   // Следим за своими играми: как только соперник принял вызов, переключаемся на доску
   useEffect(() => {
@@ -26,7 +34,8 @@ export default function Home() {
       try {
         const m = await fetchMine(addr);
         setOpenCount(m.open.length);
-        if (gid === null && m.active.length) { setGid(m.active[0]); setTab("play"); toast(t("play"), "ok"); }
+        const playing = m.active.find((x) => !x.over);
+        if (gid === null && playing) { setGid(playing.id); setTab("play"); toast(t("play"), "ok"); }
       } catch { /* сервер временно недоступен */ }
     };
     poll();
@@ -34,16 +43,19 @@ export default function Home() {
     return () => clearInterval(i);
   }, [addr, gid, toast, t]);
 
+  const openGame = (id: number) => { setGid(id); setTab("play"); };
+
   return (
     <>
       <Header />
       <main className="mx-auto max-w-3xl px-3 pt-4 pb-32">
+        {inviteId !== null && <Invite id={inviteId} onClose={() => setInviteId(null)} />}
         {tab === "lobby" && <Lobby />}
         {tab === "play" && (gid !== null
           ? <OnlineGame id={gid} onExit={() => { setGid(null); setTab("lobby"); }} />
           : <div className="card text-center space-y-1 py-10"><div className="text-4xl">{openCount ? "⏳" : "♞"}</div><div className="font-medium">{openCount ? t("waiting") : t("noActive")}</div></div>)}
         {tab === "bot" && <BotGame />}
-        {tab === "profile" && <Profile />}
+        {tab === "profile" && <Profile onOpenGame={openGame} />}
         <p className="text-center text-xs opacity-50 mt-8">18+ · <a className="underline" href={TERMS_URL}>Terms</a> · Play responsibly</p>
       </main>
       <BottomNav tab={tab} setTab={setTab} badge={gid !== null} />

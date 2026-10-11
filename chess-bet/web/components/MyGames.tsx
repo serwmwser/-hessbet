@@ -11,14 +11,13 @@ import Share from "./Share";
 
 const GRACE_MS = 3 * 86_400_000;
 
-/** Раздел профиля: мои созданные игры, идущие партии, невостребованные выплаты и аварийный возврат ставок. */
+/** Раздел профиля: мои созданные игры, идущие партии, невостребованные выплаты и возврат ставок по зависшим партиям (кнопка появляется только когда срок вышел). */
 export default function MyGames({ onOpenGame }: { onOpenGame: (id: number) => void }) {
   const { t, toast } = useApp();
   const { account, cancel, refund } = useEscrow();
   const me = account?.address;
   const [mine, setMine] = useState<{ open: OpenGame[]; active: LiveInfo[] } | null>(null);
   const [claims, setClaims] = useState<{ id: number }[]>([]);
-  const [rid, setRid] = useState("");
   const [busy, setBusy] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
@@ -101,25 +100,17 @@ export default function MyGames({ onOpenGame }: { onOpenGame: (id: number) => vo
         </section>
       )}
 
-      <details className="card">
-        <summary className="cursor-pointer font-semibold">{t("refund")}</summary>
-        <div className="space-y-3 mt-3">
-          <p className="text-sm opacity-70">{t("refundHint")}</p>
+      {stuck.length > 0 && (
+        <section className="card space-y-2">
+          <p className="text-sm opacity-80">{t("stuckNote")}</p>
           {stuck.map((g) => (
             <div key={g.id} className="flex items-center gap-3">
               <span className="mono me-auto">#{g.id} · {usdc(g.bet)} USDC</span>
-              <button className="btn btn-ghost !py-2" disabled={busy === g.id} onClick={() => doRefund(g.id)}>{t("refund")}</button>
+              <button className="btn btn-primary !py-2" disabled={busy === g.id} onClick={() => doRefund(g.id)}>{t("refund")}</button>
             </div>
           ))}
-          <div className="flex gap-2">
-            <input
-              inputMode="numeric" value={rid} onChange={(e) => setRid(e.target.value.replace(/\D/g, ""))} placeholder={t("gameId")} aria-label={t("gameId")}
-              className="flex-1 rounded-2xl bg-black/5 dark:bg-white/10 px-3 py-2 outline-none mono"
-            />
-            <button className="btn btn-ghost" disabled={!rid || busy !== null} onClick={() => doRefund(Number(rid))}>{t("refund")}</button>
-          </div>
-        </div>
-      </details>
+        </section>
+      )}
     </>
   );
 }
