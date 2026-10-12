@@ -34,6 +34,12 @@ async function main() {
   const escrow = await Escrow.deploy(usdc!, oracle, feeRecipient, feeBps);
   await escrow.waitForDeployment();
   console.log("ChessEscrow:", await escrow.getAddress());
+  // Закрытая бета: потолок ставки в USDC (например, MAX_BET_USDC=0.5). Пусто = полный потолок 5 USDC.
+  if (process.env.MAX_BET_USDC) {
+    const cap = ethers.parseUnits(process.env.MAX_BET_USDC, 6);
+    await (await escrow.setMaxBet(cap)).wait();
+    console.log("Потолок ставки:", process.env.MAX_BET_USDC, "USDC");
+  }
   console.log("Впишите адрес в server/.env (ESCROW) и web/.env.local (NEXT_PUBLIC_ESCROW).");
 }
 

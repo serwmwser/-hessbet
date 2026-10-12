@@ -230,3 +230,29 @@ describe("Рефералы", () => {
     expect(await usdc.balanceOf(await esc.getAddress())).to.equal(0n);
   });
 });
+
+describe("Потолок ставки", () => {
+  async function setup() {
+    const [owner, oracle, fee, a] = await ethers.getSigners();
+    const usdc = await (await ethers.getContractFactory("MockUSDC")).deploy();
+    const esc = await (await ethers.getContractFactory("ChessEscrow")).deploy(
+      await usdc.getAddress(), oracle.address, fee.address, 600
+    );
+    await usdc.mint(a.address, U(100));
+    await usdc.connect(a).approve(await esc.getAddress(), U(100));
+    return { owner, oracle, a, esc };
+  }
+  it("по умолчанию 5 USDC, владелец снижает до 0.5 — выше нельзя", async () => {
+    const { owner, a, esc } = await setup();
+    expect(await esc.maxBet()).to.equal(U(5));
+    await esc.connect(owner).setMaxBet(U(0.5));
+    await esc.connect(a).createGame(U(0.5), 900, ZERO);
+    await expect(esc.connect(a).createGame(U(0.55), 900, ZERO)).to.be.revertedWithCustomError(esc, "BadBet");
+  });
+  it("только владелец, не выше 5 USDC, не ниже 0.05, кратно шагу", async () => {
+    const { a, owner, esc } = await setup();
+    await expect(esc.connect(a).setMaxBet(U(1))).to.be.revertedWithCustomError(esc, "OwnableUnauthorizedAccount");
+    for (const bad of [0n, U(0.04), U(5.05), U(1.02)])
+      await expect(esc.connect(owner).setMaxBet(bad)).to.be.revertedWithCustomError(esc, "BadBet");
+  });
+});

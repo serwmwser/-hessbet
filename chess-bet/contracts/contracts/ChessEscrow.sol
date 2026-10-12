@@ -40,6 +40,8 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
     address public oracle;
     address public feeRecipient;
     uint16 public feeBps;
+    /// @notice действующий потолок ставки (владелец может снизить для беты, но не выше MAX_BET)
+    uint256 public maxBet = MAX_BET;
 
     // ---- реферальная программа "Вечный гамбит": доля реферера берётся ИЗ комиссии проекта ----
     // Реферер получает % от своей половины комиссии за каждую решённую (не ничью) партию приглашённого.
@@ -69,6 +71,7 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
     event RefClaimed(address indexed ref, uint256 amount);
     event OracleChanged(address oracle);
     event FeeChanged(uint16 feeBps, address recipient);
+    event MaxBetChanged(uint256 maxBet);
 
     error BadBet();
     error BadDuration();
@@ -101,7 +104,7 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
 
     /// @param inviteSigner address(0) для публичной игры или адрес одноразового ключа из ссылки-приглашения
     function createGame(uint256 bet, uint32 duration, address inviteSigner) external nonReentrant returns (uint256 id) {
-        if (bet < MIN_BET || bet > MAX_BET || bet % BET_STEP != 0) revert BadBet();
+        if (bet < MIN_BET || bet > maxBet || bet % BET_STEP != 0) revert BadBet();
         if (!_validDuration(duration)) revert BadDuration();
         id = nextGameId++;
         games[id] = Game(msg.sender, address(0), uint128(bet), duration, 0, Status.Open, inviteSigner);
@@ -243,6 +246,13 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
         if (_oracle == address(0)) revert ZeroAddress();
         oracle = _oracle;
         emit OracleChanged(_oracle);
+    }
+
+    /// @notice Потолок ставки для закрытой беты: от MIN_BET до MAX_BET, кратно шагу.
+    function setMaxBet(uint256 _maxBet) external onlyOwner {
+        if (_maxBet < MIN_BET || _maxBet > MAX_BET || _maxBet % BET_STEP != 0) revert BadBet();
+        maxBet = _maxBet;
+        emit MaxBetChanged(_maxBet);
     }
 
     function setFee(uint16 _feeBps, address _recipient) external onlyOwner {

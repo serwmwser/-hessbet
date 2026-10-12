@@ -20,7 +20,7 @@ export const escrowContract = getContract({ client, chain, address: ESCROW_ADDRE
 
 // Всё хранится в минимальных единицах USDC: 1 USDC = 1_000_000
 export const BET_MIN = 50_000;
-export const BET_MAX = 5_000_000;
+export const BET_MAX = Number(process.env.NEXT_PUBLIC_BET_MAX_USDC || 5) * 1_000_000; // для беты можно снизить, например 0.5
 export const BET_STEP = 50_000;
 export const BETS = Array.from({ length: BET_MAX / BET_STEP }, (_, i) => (i + 1) * BET_STEP);
 export const DURATIONS = [900, 1800, 2700, 3600, 10800, 86400];
