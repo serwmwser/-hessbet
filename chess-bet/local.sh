@@ -50,7 +50,7 @@ rm -f server/data/local-state.json server/data/local-profiles.json
 
 echo "4/4 Запускаю сайт…"
 (cd web && NEXT_PUBLIC_THIRDWEB_CLIENT_ID=fc1b95eb7453e110e8e2007b00301f0e NEXT_PUBLIC_CHAIN_ID=31337 NEXT_PUBLIC_RPC_URL="$RPC" \
-  NEXT_PUBLIC_ESCROW="$ESCROW" NEXT_PUBLIC_USDC="$USDC" NEXT_PUBLIC_API_URL="$API" NEXT_PUBLIC_WS_URL="$WS" NEXT_PUBLIC_FAUCET=1 \
+  NEXT_PUBLIC_ESCROW="$ESCROW" NEXT_PUBLIC_USDC="$USDC" NEXT_PUBLIC_API_URL="$API" NEXT_PUBLIC_WS_URL="$WS" NEXT_PUBLIC_FAUCET=1 NEXT_PUBLIC_REFERRAL=1 \
   nohup npx next dev -p 3000 > /tmp/cb-web.log 2>&1 &)
 
 for i in $(seq 1 90); do curl -s http://127.0.0.1:8080/health | grep -q ok && break; sleep 1; done

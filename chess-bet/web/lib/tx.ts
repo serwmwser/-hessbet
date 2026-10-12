@@ -70,6 +70,9 @@ export function useEscrow() {
     async claim(id: number) {
       await run(prepareContractCall({ contract: escrowContract, method: "function claim(uint256 id)", params: [BigInt(id)] }));
     },
+    async claimRef() {
+      await run(prepareContractCall({ contract: escrowContract, method: "function claimRef()", params: [] }));
+    },
     async refund(id: number) {
       await run(prepareContractCall({ contract: escrowContract, method: "function refundStuck(uint256 id)", params: [BigInt(id)] }));
     },

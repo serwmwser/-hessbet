@@ -26,3 +26,10 @@ export async function postFaucet(address: string): Promise<{ ok: boolean; error?
   const r = await fetch(API_URL + "/faucet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address }) });
   return r.json();
 }
+
+export type RefStats = { friends: number; games: number; earned: string; owed: string; pct: number };
+export const fetchRef = (a: string) => get<RefStats>(`/ref/${a}`);
+export async function postRef(body: { address: string; ref: string; sig: string }): Promise<{ ok: boolean; error?: string }> {
+  const r = await fetch(API_URL + "/ref", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  return r.json();
+}

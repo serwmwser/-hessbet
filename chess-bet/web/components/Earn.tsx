@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { fetchRef, RefStats } from "@/lib/api";
+import { useEscrow } from "@/lib/tx";
 import { useActiveAccount, useConnectModal } from "thirdweb/react";
 import { useApp } from "@/lib/ctx";
 import { chain, client } from "@/lib/config";
@@ -17,7 +19,7 @@ type D = {
   msgT: string; m1: string; m2: string; cpm: string;
   faqT: string; faq: [string, string][];
   feedT: string; feedE: string;
-  cta: string; ctaSub: string; disc: string;
+  cta: string; ctaSub: string; disc: string; pay: string;
 };
 
 const RU: D = {
@@ -43,7 +45,7 @@ const RU: D = {
   ],
   feedT: "Лента начислений", feedE: "Здесь появятся реальные начисления по твоим друзьям.",
   cta: "Скопировать ссылку", ctaSub: "Хватит просто играть — пора зарабатывать.",
-  disc: "Доход не гарантирован. Условия программы могут меняться; выплаты возможны после запуска контракта.",
+  disc: "Доход не гарантирован. Условия программы могут меняться.", pay: "Забрать",
 };
 const EN: D = {
   badge: "ETERNAL GAMBIT", h1: "They play — YOU earn",
@@ -68,8 +70,9 @@ const EN: D = {
   ],
   feedT: "Earnings feed", feedE: "Real earnings from your friends will appear here.",
   cta: "Copy link", ctaSub: "Stop just playing — start earning.",
-  disc: "Income is not guaranteed. Terms may change; payouts become available once the contract is live.",
+  disc: "Income is not guaranteed. Terms may change.", pay: "Claim",
 };
+const tierIdx = (pct: number) => (pct >= 30 ? 2 : pct >= 20 ? 1 : 0);
 const L: Record<string, D> = { ru: RU, en: EN };
 
 function Num({ l, v, set }: { l: string; v: number; set: (n: number) => void }) {
@@ -90,6 +93,13 @@ export default function Earn() {
   const [fr, setFr] = useState(50);
   const [gm, setGm] = useState(10);
   const [done, setDone] = useState("");
+  const [rs, setRs] = useState<RefStats | null>(null);
+  const esc = useEscrow();
+  const addr = account?.address;
+  const load = useCallback(() => { if (addr && REF_ENABLED) fetchRef(addr).then(setRs).catch(() => {}); }, [addr]);
+  useEffect(() => { load(); const i = setInterval(load, 15000); return () => clearInterval(i); }, [load]);
+  const usd = (v: string) => (Number(v) / 1e6).toFixed(2);
+  const owed = Number(rs?.owed ?? 0);
 
   const link = account ? refLink(account.address) : "";
   const login = () => { void connect({ client, chain, wallets, theme: dark ? "dark" : "light", size: "compact", title: "Chess Bet" }); };
@@ -132,10 +142,11 @@ export default function Earn() {
         <h2 className="font-bold">{x.statT}</h2>
         <div className="grid grid-cols-3 gap-2 text-center">
           {x.st.map((s) => (
-            <div key={s} className="rounded-xl bg-white/5 p-3"><div className={`text-xl font-extrabold ${gold}`}>—</div><div className="text-[11px] opacity-70">{s}</div></div>
+            <div key={s} className="rounded-xl bg-white/5 p-3"><div className={`text-xl font-extrabold ${gold}`}>{rs ? [rs.friends, rs.games, usd(rs.earned)][x.st.indexOf(s)] : "—"}</div><div className="text-[11px] opacity-70">{s}</div></div>
           ))}
         </div>
-        <p className="text-xs opacity-60">{x.none}</p>
+        {rs ? <p className="text-xs opacity-70">{x.lvl}: {x.names[tierIdx(rs.pct)]} {rs.pct}%</p> : <p className="text-xs opacity-60">{x.none}</p>}
+        {owed > 0 && <button className="btn btn-primary w-full" onClick={() => esc.claimRef().then(load).catch(() => {})}>{x.pay} {usd(rs!.owed)} USDC</button>}
       </div>
 
       <div className="card space-y-2">

@@ -41,6 +41,16 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
     address public feeRecipient;
     uint16 public feeBps;
 
+    // ---- реферальная программа "Вечный гамбит": доля реферера берётся ИЗ комиссии проекта ----
+    // Реферер получает % от своей половины комиссии за каждую решённую (не ничью) партию приглашённого.
+    // Уровень по числу друзей, сыгравших платную партию: 0–20 → 10%, 21–100 → 20%, 101+ → 30%.
+    mapping(address => address) public referrerOf;   // игрок → кто пригласил (задаётся один раз)
+    mapping(address => bool) public refCounted;      // друг уже засчитан (после 1-й платной партии)
+    mapping(address => uint32) public refCount;      // засчитанные друзья реферера
+    mapping(address => uint32) public refGames;      // партий друзей, по которым начислено
+    mapping(address => uint256) public refEarned;    // всего начислено USDC
+    mapping(address => uint256) public refOwed;      // не доставлено сразу — ждёт claimRef()
+
     uint256 public nextGameId = 1;
     mapping(uint256 => Game) public games;
     /// @notice сколько USDC игрок вправе забрать по игре (после результата / возврата)
@@ -54,6 +64,9 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
     event GameDrawn(uint256 indexed id);
     event GameRefunded(uint256 indexed id);
     event Claimed(uint256 indexed id, address indexed who, uint256 amount);
+    event ReferrerSet(address indexed user, address indexed ref);
+    event RefPaid(uint256 indexed id, address indexed ref, address indexed player, uint256 amount);
+    event RefClaimed(address indexed ref, uint256 amount);
     event OracleChanged(address oracle);
     event FeeChanged(uint16 feeBps, address recipient);
 
@@ -68,6 +81,7 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
     error FeeTooHigh();
     error BadInvite();
     error NothingToClaim();
+    error BadReferrer();
 
     modifier onlyOracle() {
         if (msg.sender != oracle) revert NotAllowed();
@@ -150,7 +164,11 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
         uint256 fee = (pot * feeBps) / 10_000;
         uint256 payout = pot - fee;
         entitlement[id][winner] = payout;
-        if (fee > 0) usdc.safeTransfer(feeRecipient, fee);
+        if (fee > 0) {
+            uint256 toRef = _payRef(id, g.p1, fee / 2) + _payRef(id, g.p2, fee - fee / 2);
+            uint256 toOwner = fee - toRef;
+            if (toOwner > 0) usdc.safeTransfer(feeRecipient, toOwner);
+        }
         emit GameFinished(id, winner, payout, fee);
     }
 
@@ -163,6 +181,53 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
         entitlement[id][g.p1] = g.bet;
         entitlement[id][g.p2] = g.bet;
         emit GameRefunded(id);
+    }
+
+    // ------------------------------------------------------------ рефералы
+
+    /// @notice Привязать игрока к пригласившему (один раз). Вызывает сервер после проверки подписи игрока.
+    function setReferrer(address user, address ref) external onlyOracle {
+        if (user == address(0) || ref == address(0) || user == ref || referrerOf[user] != address(0)) revert BadReferrer();
+        referrerOf[user] = ref;
+        emit ReferrerSet(user, ref);
+    }
+
+    /// @notice Забрать начисления, которые не удалось отправить сразу.
+    function claimRef() external nonReentrant {
+        uint256 amount = refOwed[msg.sender];
+        if (amount == 0) revert NothingToClaim();
+        refOwed[msg.sender] = 0;
+        usdc.safeTransfer(msg.sender, amount);
+        emit RefClaimed(msg.sender, amount);
+    }
+
+    function refPct(uint32 friends) public pure returns (uint256) {
+        return friends >= 101 ? 30 : friends >= 21 ? 20 : 10;
+    }
+
+    /// @notice Данные для страницы "Заработай".
+    function refInfo(address r) external view returns (uint32 friends, uint32 gamesCount, uint256 earned, uint256 owed, uint256 pct) {
+        return (refCount[r], refGames[r], refEarned[r], refOwed[r], refPct(refCount[r]));
+    }
+
+    /// @dev Начисляет рефереру игрока долю от половины комиссии. Деньги уходят рефереру сразу;
+    ///      если перевод не удался (например, адрес в чёрном списке USDC), сумма копится в refOwed.
+    ///      Возвращает сумму, вычтенную из комиссии владельца.
+    function _payRef(uint256 id, address player, uint256 halfFee) private returns (uint256) {
+        address r = referrerOf[player];
+        if (r == address(0)) return 0;
+        if (!refCounted[player]) { refCounted[player] = true; refCount[r] += 1; }
+        refGames[r] += 1;
+        uint256 amt = (halfFee * refPct(refCount[r])) / 100;
+        if (amt == 0) return 0;
+        refEarned[r] += amt;
+        emit RefPaid(id, r, player, amt);
+        try usdc.transfer(r, amt) returns (bool ok) {
+            if (!ok) refOwed[r] += amt;
+        } catch {
+            refOwed[r] += amt;
+        }
+        return amt;
     }
 
     // ------------------------------------------------------------ просмотр

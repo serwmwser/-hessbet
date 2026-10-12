@@ -25,3 +25,18 @@ export function getRef(): string | null {
   try { return localStorage.getItem(KEY); } catch { return null; }
 }
 export const refLink = (addr: string) => `${location.origin}${BASE}/?ref=${addr}`;
+
+/** После входа: подписываем (бесплатно, без газа) привязку к пригласившему и отправляем серверу. Один раз на адрес. */
+export async function registerRef(account: { address: string; signMessage: (a: { message: string }) => Promise<string> }) {
+  const ref = getRef();
+  const user = account.address.toLowerCase();
+  if (!REF_ENABLED || !ref || ref === user) return;
+  const k = `cb_ref_sent_${user}`;
+  try {
+    if (localStorage.getItem(k)) return;
+    const sig = await account.signMessage({ message: `ChessBet referral\nUser: ${user}\nReferrer: ${ref}` });
+    const { postRef } = await import("./api");
+    const r = await postRef({ address: user, ref, sig });
+    if (r.ok || r.error === "already_played") localStorage.setItem(k, "1");
+  } catch {}
+}

@@ -143,3 +143,90 @@ describe("ChessEscrow v2", () => {
     await esc.connect(owner).setOracle(oracle.address);
   });
 });
+
+describe("Рефералы", () => {
+  async function setup() {
+    const [owner, oracle, fee, a, b, c] = await ethers.getSigners();
+    const usdc = await (await ethers.getContractFactory("MockUSDC")).deploy();
+    const esc = await (await ethers.getContractFactory("ChessEscrow")).deploy(
+      await usdc.getAddress(), oracle.address, fee.address, 600
+    );
+    for (const s of [a, b, c]) {
+      await usdc.mint(s.address, U(100));
+      await usdc.connect(s).approve(await esc.getAddress(), U(100));
+    }
+    return { owner, oracle, fee, a, b, c, usdc, esc };
+  }
+  const play = async (esc: any, oracle: any, p1: any, p2: any, winner: any, bet = 5) => {
+    const id = Number(await esc.nextGameId());
+    await esc.connect(p1).createGame(U(bet), 900, ZERO);
+    await esc.connect(p2).joinGame(id, "0x");
+    await esc.connect(oracle).reportResult(id, winner);
+    return id;
+  };
+
+  it("без реферера всё как раньше: 0.60 владельцу", async () => {
+    const { esc, usdc, oracle, fee, a, b } = await setup();
+    await play(esc, oracle, a, b, a.address);
+    expect(await usdc.balanceOf(fee.address)).to.equal(U(0.6));
+  });
+
+  it("реферер получает 10% от половины комиссии за друга, остальное владельцу", async () => {
+    const { esc, usdc, oracle, fee, a, b, c } = await setup();
+    await esc.connect(oracle).setReferrer(a.address, c.address);
+    const before = await usdc.balanceOf(c.address);
+    await play(esc, oracle, a, b, b.address);
+    expect((await usdc.balanceOf(c.address)) - before).to.equal(U(0.03));
+    expect(await usdc.balanceOf(fee.address)).to.equal(U(0.57));
+    const info = await esc.refInfo(c.address);
+    expect(info.friends).to.equal(1); expect(info.gamesCount).to.equal(1);
+    expect(info.earned).to.equal(U(0.03)); expect(info.pct).to.equal(10);
+  });
+
+  it("если приглашены оба игрока — вдвое больше (0.06)", async () => {
+    const { esc, usdc, oracle, fee, a, b, c } = await setup();
+    await esc.connect(oracle).setReferrer(a.address, c.address);
+    await esc.connect(oracle).setReferrer(b.address, c.address);
+    const before = await usdc.balanceOf(c.address);
+    await play(esc, oracle, a, b, a.address);
+    expect((await usdc.balanceOf(c.address)) - before).to.equal(U(0.06));
+    expect(await usdc.balanceOf(fee.address)).to.equal(U(0.54));
+    expect((await esc.refInfo(c.address)).friends).to.equal(2);
+  });
+
+  it("друг засчитывается один раз, партий — каждая; ничья реферальных не даёт", async () => {
+    const { esc, usdc, oracle, a, b, c } = await setup();
+    await esc.connect(oracle).setReferrer(a.address, c.address);
+    await play(esc, oracle, a, b, a.address);
+    await play(esc, oracle, a, b, b.address);
+    const before = await usdc.balanceOf(c.address);
+    await play(esc, oracle, a, b, ZERO);
+    expect(await usdc.balanceOf(c.address)).to.equal(before);
+    const info = await esc.refInfo(c.address);
+    expect(info.friends).to.equal(1); expect(info.gamesCount).to.equal(2);
+  });
+
+  it("реферера задаёт только оракул, один раз, не на себя", async () => {
+    const { esc, oracle, a, b, c } = await setup();
+    await expect(esc.connect(a).setReferrer(a.address, b.address)).to.be.revertedWithCustomError(esc, "NotAllowed");
+    await expect(esc.connect(oracle).setReferrer(a.address, a.address)).to.be.revertedWithCustomError(esc, "BadReferrer");
+    await esc.connect(oracle).setReferrer(a.address, b.address);
+    await expect(esc.connect(oracle).setReferrer(a.address, c.address)).to.be.revertedWithCustomError(esc, "BadReferrer");
+  });
+
+  it("уровни: 21 друг → 20%, 101 → 30%", async () => {
+    const { esc } = await setup();
+    expect(await esc.refPct(20)).to.equal(10);
+    expect(await esc.refPct(21)).to.equal(20);
+    expect(await esc.refPct(100)).to.equal(20);
+    expect(await esc.refPct(101)).to.equal(30);
+  });
+
+  it("после claim на контракте ноль", async () => {
+    const { esc, usdc, oracle, a, b, c } = await setup();
+    await esc.connect(oracle).setReferrer(a.address, c.address);
+    const id = await play(esc, oracle, a, b, a.address);
+    await esc.connect(a).claim(id);
+    expect(await usdc.balanceOf(await esc.getAddress())).to.equal(0n);
+  });
+});

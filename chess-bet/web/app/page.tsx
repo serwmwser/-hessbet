@@ -14,7 +14,7 @@ import Profile from "@/components/Profile";
 import { fetchMine } from "@/lib/api";
 import { TERMS_URL } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
-import { captureRef } from "@/lib/ref";
+import { captureRef, registerRef } from "@/lib/ref";
 
 export default function Home() {
   const { t, toast } = useApp();
@@ -26,6 +26,7 @@ export default function Home() {
   const addr = account?.address.toLowerCase();
 
   useEffect(() => { captureRef(); }, []);
+  useEffect(() => { if (account) void registerRef(account as never); }, [account]);
 
   // Ссылка-приглашение: /?game=ID (для приватных игр ключ в #k=...)
   useEffect(() => {

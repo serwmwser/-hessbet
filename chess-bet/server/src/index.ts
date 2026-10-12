@@ -15,6 +15,7 @@ const {
   BLOCKED_COUNTRIES = "",
   STATE_FILE = "./data/state.json",
   PROFILES_FILE = "./data/profiles.json",
+  REF_FILE = "./data/refs.json",
   FAUCET_PK = "",
   USDC_TOKEN = "",
   FAUCET_NATIVE = "1",
@@ -35,6 +36,9 @@ const ABI = [
   "function feeBps() view returns (uint16)",
   "function reportResult(uint256 id,address winner)",
   "function refundStuck(uint256 id)",
+  "function referrerOf(address) view returns (address)",
+  "function setReferrer(address user,address ref)",
+  "function refInfo(address r) view returns (uint32 friends,uint32 gamesCount,uint256 earned,uint256 owed,uint256 pct)",
 ];
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallet = new ethers.Wallet(ORACLE_PK, provider);
@@ -261,6 +265,32 @@ function finish(g: Live, winner: string | null, reason: string) {
   void report(g);
 }
 
+// ---------- рефералы: пригласивший хранится у нас до первой решённой партии, затем фиксируется в контракте ----------
+const refPending = new Map<string, string>(); // игрок → пригласивший
+try {
+  for (const [u, r] of Object.entries(JSON.parse(fs.readFileSync(REF_FILE, "utf8")) as Record<string, string>)) refPending.set(u, r);
+  console.log(`refs: ${refPending.size}`);
+} catch { /* пока пусто */ }
+function saveRefs() {
+  try {
+    fs.mkdirSync(path.dirname(REF_FILE), { recursive: true });
+    fs.writeFileSync(REF_FILE + ".tmp", JSON.stringify(Object.fromEntries(refPending)));
+    fs.renameSync(REF_FILE + ".tmp", REF_FILE);
+  } catch (e) { console.error("refs save:", (e as Error).message); }
+}
+/** Перед отправкой результата фиксируем пригласивших обоих игроков в контракте (газ платим только за реально сыгравших). */
+async function ensureRefs(players: string[]) {
+  for (const u of players) {
+    const r = refPending.get(u);
+    if (!r) continue;
+    try {
+      const cur = String(await escrow.referrerOf(u));
+      if (cur === ethers.ZeroAddress) await (await escrow.setReferrer(u, r)).wait();
+      refPending.delete(u); saveRefs();
+    } catch (e) { console.error(`setReferrer ${u}:`, (e as Error).message); }
+  }
+}
+
 let queue: Promise<unknown> = Promise.resolve();
 const enqueue = <T,>(f: () => Promise<T>) => { const r = queue.then(f, f); queue = r.catch(() => {}); return r; };
 
@@ -269,6 +299,7 @@ async function report(g: Live, attempt = 0): Promise<void> {
     await enqueue(async () => {
       const st = Number((await escrow.games(g.id)).status);
       if (st === 2) {
+        await ensureRefs([g.white, g.black]);
         const tx = await escrow.reportResult(g.id, g.winner ?? ethers.ZeroAddress);
         await tx.wait();
       }
@@ -381,6 +412,32 @@ const server = http.createServer((req, res) => {
       const e = saveProfile(m);
       out(e ? { ok: false, error: e } : { ok: true });
     });
+    return;
+  }
+  if (req.method === "POST" && parts[0] === "ref") {
+    if (origins.length && !originOk(origin)) { res.writeHead(403).end("{}"); return; }
+    let body = "";
+    req.on("data", (c) => { body += c; if (body.length > 2_000) req.destroy(); });
+    req.on("end", async () => {
+      try {
+        const m = JSON.parse(body);
+        const user = lc(String(m.address ?? "")), ref = lc(String(m.ref ?? ""));
+        if (!ethers.isAddress(user) || !ethers.isAddress(ref) || user === ref) return out({ ok: false, error: "bad_address" });
+        const msg = `ChessBet referral\nUser: ${user}\nReferrer: ${ref}`;
+        if (lc(ethers.verifyMessage(msg, String(m.sig ?? ""))) !== user) return out({ ok: false, error: "bad_sig" });
+        if (refPending.has(user)) return out({ ok: true });
+        if (done.some((d) => d.white === user || d.black === user) || [...live.values()].some((g) => g.white === user || g.black === user)) return out({ ok: false, error: "already_played" });
+        if (String(await escrow.referrerOf(user)) !== ethers.ZeroAddress) return out({ ok: true });
+        refPending.set(user, ref); saveRefs();
+        out({ ok: true });
+      } catch { out({ ok: false, error: "bad_request" }); }
+    });
+    return;
+  }
+  if (parts[0] === "ref" && parts[1] && ethers.isAddress(parts[1])) {
+    escrow.refInfo(lc(parts[1])).then((r: any) => out({
+      friends: Number(r[0]), games: Number(r[1]), earned: r[2].toString(), owed: r[3].toString(), pct: Number(r[4]),
+    })).catch(() => out({ friends: 0, games: 0, earned: "0", owed: "0", pct: 10 }));
     return;
   }
   if (parts[0] === "profile" && parts[1]) return out(publicProfile(lc(parts[1])));
