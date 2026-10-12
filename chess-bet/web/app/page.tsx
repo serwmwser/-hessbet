@@ -5,6 +5,7 @@ import BotGame from "@/components/BotGame";
 import BottomNav, { Tab } from "@/components/BottomNav";
 import Header from "@/components/Header";
 import Earn from "@/components/Earn";
+import FaucetBar from "@/components/FaucetBar";
 import Hero from "@/components/Hero";
 import Invite from "@/components/Invite";
 import Lobby from "@/components/Lobby";
@@ -56,6 +57,7 @@ export default function Home() {
     <>
       <Header />
       <main className="mx-auto max-w-3xl px-3 pt-4 pb-32">
+        <FaucetBar />
         {inviteId !== null && <Invite id={inviteId} onClose={() => setInviteId(null)} />}
         {tab === "lobby" && <div className="space-y-4"><Hero onBot={() => setTab("bot")} onEarn={() => setTab("earn")} /><Lobby /></div>}
         {tab === "play" && (gid !== null
