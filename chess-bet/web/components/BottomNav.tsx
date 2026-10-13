@@ -11,7 +11,7 @@ const TABS: { id: Tab; key: Key; icon: string }[] = [
   { id: "earn", key: "lobby", icon: "💰" },
 ];
 
-export default function BottomNav({ tab, setTab, badge }: { tab: Tab; setTab: (t: Tab) => void; badge?: boolean }) {
+export default function BottomNav({ tab, setTab, badge, botBadge }: { tab: Tab; setTab: (t: Tab) => void; badge?: boolean; botBadge?: boolean }) {
   const { t, lang } = useApp();
   const earnL = lang === "ru" ? "Заработай" : "Earn";
   return (
@@ -27,6 +27,7 @@ export default function BottomNav({ tab, setTab, badge }: { tab: Tab; setTab: (t
             <span className="text-xl leading-none">{x.icon}</span>
             {x.id === "earn" ? earnL : t(x.key)}
             {x.id === "play" && badge && <span className="absolute top-1 end-[30%] w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />}
+            {x.id === "bot" && botBadge && <span className="absolute top-1 end-[30%] w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />}
           </button>
         ))}
       </div>
