@@ -16,6 +16,7 @@ const {
   STATE_FILE = "./data/state.json",
   PROFILES_FILE = "./data/profiles.json",
   REF_FILE = "./data/refs.json",
+  ADS_FILE = "./data/ads.json",
   FAUCET_PK = "",
   USDC_TOKEN = "",
   FAUCET_NATIVE = "1",
@@ -52,7 +53,11 @@ type Live = {
   chess: Chess; clock: { w: number; b: number }; last: number;
   drawOffer: string | null; over: boolean; reason: string | null; winner: string | null;
   reported: boolean; socks: Set<WebSocket>;
+  // пауза: у каждого игрока 2 паузы по 5 минут; пока пауза идёт, основные часы заморожены
+  pause: { by: string; color: "w" | "b"; until: number } | null; pausesLeft: { w: number; b: number };
 };
+const PAUSES = 2;
+const PAUSE_MS = 5 * 60_000;
 type Done = {
   id: number; white: string; black: string; bet: string; winner: string | null;
   reason: string; payout: string; pgn: string; at: number;
@@ -75,7 +80,9 @@ function load() {
       const chess = new Chess();
       if (x.pgn) chess.loadPgn(x.pgn);
       // время простоя сервера не списывается с игроков
-      live.set(x.id, { ...x, chess, startedAt: x.startedAt ?? Date.now(), last: Date.now(), socks: new Set() });
+      // пауза: простой сервера тоже не съедает её время
+      const pause = x.pause ? { by: x.pause.by, color: x.pause.color, until: Date.now() + Number(x.pause.left) } : null;
+      live.set(x.id, { ...x, chess, startedAt: x.startedAt ?? Date.now(), last: Date.now(), socks: new Set(), pause, pausesLeft: x.pausesLeft ?? { w: PAUSES, b: PAUSES } });
     }
     console.log(`state: live=${live.size} done=${done.length} scanFrom=${scanFrom}`);
   } catch {
@@ -91,6 +98,7 @@ function save() {
       id: g.id, white: g.white, black: g.black, bet: g.bet, duration: g.duration,
       startedAt: g.startedAt, pgn: g.chess.pgn(), clock: g.clock, drawOffer: g.drawOffer, over: g.over,
       reason: g.reason, winner: g.winner, reported: g.reported,
+      pause: g.pause ? { by: g.pause.by, color: g.pause.color, left: Math.max(0, g.pause.until - Date.now()) } : null, pausesLeft: g.pausesLeft,
     }));
     fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
     fs.writeFileSync(STATE_FILE + ".tmp", JSON.stringify({ live: liveOut, done: done.slice(-5000), scanFrom }));
@@ -204,6 +212,7 @@ function startLive(id: number, white: string, black: string, bet: string, durati
   live.set(id, {
     id, white, black, bet, duration, startedAt, chess: new Chess(), clock: { w: ms, b: ms }, last: Date.now(),
     drawOffer: null, over: false, reason: null, winner: null, reported: false, socks: new Set(),
+    pause: null, pausesLeft: { w: PAUSES, b: PAUSES },
   });
   open.delete(id);
   save();
@@ -213,7 +222,7 @@ function startLive(id: number, white: string, black: string, bet: string, durati
 // Часы стоят, пока белые не сделали первый ход (первый ход время не расходует)
 function remaining(g: Live) {
   const c = { ...g.clock };
-  if (!g.over && g.chess.history().length > 0) { const t = g.chess.turn(); c[t] = Math.max(0, c[t] - (Date.now() - g.last)); }
+  if (!g.over && !g.pause && g.chess.history().length > 0) { const t = g.chess.turn(); c[t] = Math.max(0, c[t] - (Date.now() - g.last)); }
   return c;
 }
 
@@ -249,6 +258,8 @@ function snap(g: Live) {
     white: g.white, black: g.black, bet: g.bet, duration: g.duration,
     turn: g.chess.turn(), clock: remaining(g), over: g.over, reason: g.reason,
     winner: g.winner, drawOffer: g.drawOffer, feeBps,
+    pause: g.pause ? { by: g.pause.by, color: g.pause.color, left: Math.max(0, g.pause.until - Date.now()) } : null,
+    pausesLeft: g.pausesLeft,
   };
 }
 function broadcast(g: Live) {
@@ -258,8 +269,9 @@ function broadcast(g: Live) {
 function finish(g: Live, winner: string | null, reason: string) {
   if (g.over) return;
   g.over = true; g.winner = winner; g.reason = reason; g.drawOffer = null;
-  // фиксируем остаток часов на момент окончания
+  // фиксируем остаток часов на момент окончания (на паузе часы заморожены), затем снимаем паузу
   g.clock = remaining({ ...g, over: false } as Live);
+  g.pause = null;
   broadcast(g);
   save();
   void report(g);
@@ -327,6 +339,11 @@ function finalize(g: Live) {
 setInterval(() => {
   for (const g of live.values()) {
     if (g.over) continue;
+    if (g.pause) {
+      // не вернулся из паузы за 5 минут — поражение
+      if (Date.now() >= g.pause.until) finish(g, g.pause.by === g.white ? g.black : g.white, "pause_timeout");
+      continue;
+    }
     if (g.chess.history().length === 0) {
       // белые не сделали первый ход за отведённое время партии → отмена, ставки возвращаются без комиссии
       if (Date.now() - g.startedAt > g.duration * 1000) finish(g, null, "abort");
@@ -336,6 +353,29 @@ setInterval(() => {
     if (remaining(g)[t] <= 0) flag(g, t);
   }
 }, 1000);
+
+// ---------- реклама для страницы паузы: список в файле ADS_FILE (до 10 слотов), правится без пересборки сайта ----------
+let adsCache: { mtime: number; list: unknown[] } = { mtime: -1, list: [] };
+function readAds(): unknown[] {
+  try {
+    const m = fs.statSync(ADS_FILE).mtimeMs;
+    if (m !== adsCache.mtime) {
+      const raw = JSON.parse(fs.readFileSync(ADS_FILE, "utf8"));
+      const web = (u: unknown): u is string => typeof u === "string" && /^https?:\/\//i.test(u) && u.length <= 500;
+      const str = (u: unknown, n: number) => (typeof u === "string" ? u.slice(0, n) : undefined);
+      const list: unknown[] = [];
+      for (const x of Array.isArray(raw) ? raw : []) {
+        if (list.length >= 10 || !x || typeof x !== "object") continue;
+        const type = x.type;
+        if ((type === "video" || type === "banner") && web(x.src)) list.push({ type, src: x.src, href: web(x.href) ? x.href : undefined });
+        else if (type === "cta" && x.title && web(x.href)) list.push({ type, title: str(x.title, 120), subtitle: str(x.subtitle, 200), button: str(x.button, 24), href: x.href });
+        else if (type === "html" && typeof x.html === "string" && x.html.length <= 50_000 && !/<\s*script/i.test(x.html)) list.push({ type, html: x.html });
+      }
+      adsCache = { mtime: m, list };
+    }
+  } catch { adsCache = { mtime: -1, list: [] }; } // нет файла или он повреждён — рекламы нет
+  return adsCache.list;
+}
 
 // ---------- HTTP ----------
 const origins = ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
@@ -449,6 +489,7 @@ const server = http.createServer((req, res) => {
     return out(o);
   }
   if (parts[0] === "health") return out({ ok: true });
+  if (parts[0] === "ads") return out(readAds());
   if (parts[0] === "games") {
     const pub = [...open.values()].filter((g) => !g.signer).sort((a, b) => b.id - a.id).slice(0, 200);
     return out({ feeBps, games: pub });
@@ -526,7 +567,7 @@ wss.on("connection", (ws: WebSocket) => {
         return send({
           t: "state", id, fen: chess.fen(), history: h.map((x) => x.san), lastMove: lm ? { from: lm.from, to: lm.to } : null,
           white: d.white, black: d.black, bet: d.bet, duration: 0, turn: chess.turn(), clock: { w: 0, b: 0 },
-          over: true, reason: d.reason, winner: d.winner, drawOffer: null, feeBps,
+          over: true, reason: d.reason, winner: d.winner, drawOffer: null, feeBps, pause: null, pausesLeft: { w: 0, b: 0 },
         });
       }
       return err("game_not_found");
@@ -537,6 +578,32 @@ wss.on("connection", (ws: WebSocket) => {
     const me = c.addr;
     if (me !== g.white && me !== g.black) return err("not_player");
     if (g.over) return err("game_over");
+
+    if (m.t === "pause") {
+      // только в свой ход, после первого хода (часы идут), не больше двух раз за партию — всё проверяется здесь, а не на клиенте
+      if (g.pause) return err("already_paused");
+      const turn = g.chess.turn();
+      if ((turn === "w" ? g.white : g.black) !== me) return err("not_your_turn");
+      if (g.chess.history().length === 0) return err("not_started");
+      if (g.pausesLeft[turn] <= 0) return err("no_pauses");
+      const t = Date.now();
+      if (g.clock[turn] - (t - g.last) <= 0) return flag(g, turn);
+      g.clock[turn] -= t - g.last; g.last = t; // фиксируем часы и замораживаем
+      g.pausesLeft[turn] -= 1;
+      g.pause = { by: me, color: turn, until: t + PAUSE_MS };
+      g.drawOffer = null;
+      broadcast(g); save();
+      return;
+    }
+    if (m.t === "resume") {
+      if (!g.pause) return err("not_paused");
+      if (g.pause.by !== me) return err("not_pause_owner");
+      g.pause = null; g.last = Date.now();
+      broadcast(g); save();
+      return;
+    }
+    if (m.t === "resign") return finish(g, me === g.white ? g.black : g.white, "resign");
+    if (g.pause) return err("paused"); // на паузе доступны только «продолжить» и «сдаться»
 
     if (m.t === "move") {
       const turn = g.chess.turn();
@@ -558,7 +625,6 @@ wss.on("connection", (ws: WebSocket) => {
       else { broadcast(g); save(); }
       return;
     }
-    if (m.t === "resign") return finish(g, me === g.white ? g.black : g.white, "resign");
     if (m.t === "draw_offer") { g.drawOffer = me; broadcast(g); return; }
     if (m.t === "draw_decline") { if (g.drawOffer && g.drawOffer !== me) { g.drawOffer = null; broadcast(g); } return; }
     if (m.t === "draw_accept") { if (g.drawOffer && g.drawOffer !== me) finish(g, null, "agreement"); return; }
