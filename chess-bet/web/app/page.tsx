@@ -16,6 +16,7 @@ import { fetchMine } from "@/lib/api";
 import { TERMS_URL } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
 import { captureRef, registerRef } from "@/lib/ref";
+import { useBotActive } from "@/lib/botStore";
 
 export default function Home() {
   const { t, toast } = useApp();
@@ -25,6 +26,7 @@ export default function Home() {
   const [openCount, setOpenCount] = useState(0);
   const [inviteId, setInviteId] = useState<number | null>(null);
   const addr = account?.address.toLowerCase();
+  const botActive = useBotActive();
 
   useEffect(() => { captureRef(); }, []);
   useEffect(() => { if (account) void registerRef(account as never); }, [account]);
@@ -68,7 +70,7 @@ export default function Home() {
         {tab === "profile" && <Profile onOpenGame={openGame} />}
         <p className="text-center text-xs opacity-50 mt-8">18+ · <a className="underline" href={TERMS_URL}>Terms</a> · Play responsibly</p>
       </main>
-      <BottomNav tab={tab} setTab={setTab} badge={gid !== null} />
+      <BottomNav tab={tab} setTab={setTab} badge={gid !== null} botBadge={botActive} />
     </>
   );
 }
