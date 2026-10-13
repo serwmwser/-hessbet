@@ -17,3 +17,7 @@ export function canMate(chess: Chess, s: "w" | "b"): boolean {
   if (onlyBishops(mine) && onlyBishops(theirs) && new Set([...mine, ...theirs].map((p) => col(p.square))).size <= 1) return false;
   return true;
 }
+
+/** Паузы: у каждого игрока 2 паузы за партию, каждая не дольше 5 минут (то же правило на сервере) */
+export const PAUSES_TOTAL = 2;
+export const PAUSE_MS = 5 * 60_000;
