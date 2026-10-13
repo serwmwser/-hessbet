@@ -6,6 +6,7 @@ import { chain, client } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
 import type { Lang } from "@/lib/i18n";
 import { wallets } from "./Header";
+import { TrustBlock } from "./PausePage";
 
 type T = { net: string; h1: string; sub: string; cta: string; ctaBot: string; sl: string[]; lb: string[]; how: string; st: string[]; tr: string[]; resp: string };
 
@@ -128,8 +129,11 @@ export default function Hero({ onBot, onEarn }: { onBot: () => void; onEarn?: ()
   // Уже вошедшему игроку показываем только короткий мотивирующий слоган
   if (account) {
     return (
-      <div className="card text-center !py-3 !bg-gradient-to-r from-brand-600/20 to-brand-violet/20">
-        <Slogan list={x.sl} />
+      <div className="space-y-3">
+        <div className="card text-center !py-3 !bg-gradient-to-r from-brand-600/20 to-brand-violet/20">
+          <Slogan list={x.sl} />
+        </div>
+        <TrustBlock />
       </div>
     );
   }
@@ -162,6 +166,8 @@ export default function Hero({ onBot, onEarn }: { onBot: () => void; onEarn?: ()
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onBot} className="btn bg-white/10 hover:bg-white/20 text-white text-base px-6 py-3.5">🤖 {x.ctaBot}</motion.button>
         {onEarn && <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onEarn} className="btn bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-base px-6 py-3.5">💰 {lang === "ru" ? "Заработай" : "Earn"}</motion.button>}
       </div>
+
+      <TrustBlock className="relative" />
 
       <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[<><Count to={94} />%</>, "0.05–5", "6", "0%"].map((v, i) => (
