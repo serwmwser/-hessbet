@@ -5,16 +5,19 @@ import { useActiveAccount } from "thirdweb/react";
 import { shortAddr, usdc, WS_URL } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
 import { useProfile } from "@/lib/profile";
+import { usePT } from "@/lib/pauseTxt";
 import { Key } from "@/lib/i18n";
 import Board, { Clock, Moves } from "./Board";
 import { LoseSplash, StartSplash, WaitingSplash, WinSplash } from "./Splash";
 import Claim from "./Claim";
+import PausePage, { PauseButton } from "./PausePage";
 import { ReplayBar, useReplay } from "./Replay";
 
 type State = {
   t: "state"; id: number; fen: string; history: string[]; lastMove: { from: string; to: string } | null;
   white: string; black: string; bet: string; turn: "w" | "b"; clock: { w: number; b: number };
   over: boolean; reason: string | null; winner: string | null; drawOffer: string | null; feeBps: number;
+  pause?: { by: string; color: "w" | "b"; left: number } | null; pausesLeft?: { w: number; b: number };
 };
 
 const REASON: Record<string, Key> = { checkmate: "rChk", timeout: "rTime", resign: "rRes", timeout_draw: "rTimeDraw", abort: "rAbort" };
@@ -22,6 +25,9 @@ const EMPTY: string[] = [];
 
 export default function OnlineGame({ id, onExit }: { id: number; onExit: () => void }) {
   const { t, toast } = useApp();
+  const pt = usePT();
+  const ptRef = useRef(pt);
+  ptRef.current = pt;
   const account = useActiveAccount();
   const [st, setSt] = useState<State | null>(null);
   const [, tick] = useState(0);
@@ -54,7 +60,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
         else if (m.t === "state") { setSt(m); recv.current = Date.now(); }
         else if (m.t === "error") {
           if (m.message === "game_not_found") setTimeout(() => sock.readyState === 1 && join(), 1500);
-          else if (m.message !== "not_your_turn") toast(m.message, "err");
+          else if (m.message !== "not_your_turn") toast(ptRef.current.err[m.message] ?? m.message, "err");
         }
       };
       sock.onclose = () => { if (!closed) retry = setTimeout(connect, 2000); };
@@ -75,15 +81,19 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
   const opp = iAmWhite ? st.black : st.white;
   // часы стоят до первого хода белых; первый ход время не расходует
   const started = st.history.length > 0;
-  const elapsed = st.over || !started ? 0 : Date.now() - recv.current;
+  const paused = !st.over && !!st.pause; // на паузе основные часы заморожены
+  const elapsed = st.over || !started || paused ? 0 : Date.now() - recv.current;
   const rem = (c: "w" | "b") => st.clock[c] - (!st.over && st.turn === c ? elapsed : 0);
-  const myTurn = !st.over && st.turn === myColor;
+  const myTurn = !st.over && !paused && st.turn === myColor;
+  const pausesLeft = st.pausesLeft?.[myColor] ?? 0;
+  // пауза закончится автопоражением; сервер присылает остаток, считаем локально от момента получения
+  const pauseUntil = st.pause ? recv.current + st.pause.left : 0;
   const bet = Number(st.bet);
   const offerFromOpp = !!st.drawOffer && st.drawOffer !== me;
   const won = st.over && st.winner === me;
   const lost = st.over && !!st.winner && st.winner !== me;
   const drawn = st.over && !st.winner;
-  const reasonText = st.reason && REASON[st.reason] ? t(REASON[st.reason]) : drawn ? t("rDraw") : "";
+  const reasonText = st.reason === "pause_timeout" ? pt.lostPause : st.reason && REASON[st.reason] ? t(REASON[st.reason]) : drawn ? t("rDraw") : "";
 
   // итог партии показываем поверх доски
   const overlay = st.over && endOpen ? (
@@ -103,9 +113,12 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
 
   return (
     <div className="space-y-3">
+      {st.pause && !st.over && (
+        <PausePage mode="pvp" until={pauseUntil} byMe={st.pause.by === me} color={st.pause.color} left={st.pausesLeft?.[st.pause.color] ?? 0} onResume={() => send({ t: "resume" })} />
+      )}
       {intro && !st.over && st.history.length === 0 && <StartSplash white={iAmWhite} onDone={() => setIntro(false)} />}
       {/* таймер каждого игрока: общее время на партию, идёт только на своём ходу */}
-      <Clock ms={rem(iAmWhite ? "b" : "w")} active={started && !st.over && st.turn !== myColor} label={`${oppProf?.name || shortAddr(opp)} · ${iAmWhite ? t("black") : t("white")}`} />
+      <Clock ms={rem(iAmWhite ? "b" : "w")} active={started && !st.over && !paused && st.turn !== myColor} label={`${oppProf?.name || shortAddr(opp)} · ${iAmWhite ? t("black") : t("white")}`} />
       <div className="relative">
       <Board
         fen={replay.fen}
@@ -125,6 +138,7 @@ export default function OnlineGame({ id, onExit }: { id: number; onExit: () => v
         <span className="font-medium">{st.over ? "" : myTurn ? t("yourTurn") : t("oppTurn")}</span>
         <span className="opacity-70">{t("pot")}: <b className="mono">{usdc(bet * 2)}</b> USDC</span>
       </div>
+      {!st.over && <PauseButton left={pausesLeft} active={myTurn && started} onClick={() => send({ t: "pause" })} />}
       <Moves san={st.history} />
 
       {!st.over && (
