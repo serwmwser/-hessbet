@@ -5,6 +5,7 @@ import { fetchHistory, fetchProfile, postFaucet, DoneGame, ProfileData, Stats } 
 import { chain, client, FAUCET_ENABLED, shortAddr, usdc, USDC_ADDRESS } from "@/lib/config";
 import { BOARDS, BoardName, useApp } from "@/lib/ctx";
 import { PIECE_SETS, usePieceSet } from "@/lib/pieces";
+import { PTHEMES, usePTheme } from "@/lib/ptheme";
 import { gameUrl } from "@/lib/invite";
 import Avatar from "./Avatar";
 import BuyCrypto from "./BuyCrypto";
@@ -17,6 +18,7 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
   const { t, board, setBoard, toast } = useApp();
   const uiLang = useApp().lang;
   const [pset, setPset] = usePieceSet();
+  const [pth, setPth] = usePTheme();
   const account = useActiveAccount();
   const me = account?.address;
   const pol = useWalletBalance({ client, chain, address: me });
@@ -59,7 +61,7 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
           {editing ? (
             <ProfileEditor initial={prof} onSaved={(p) => { setProf(p); setEditing(false); }} onClose={() => setEditing(false)} />
           ) : (
-            <section className="card space-y-2">
+            <section className="card space-y-2" style={pth.style}>
               <div className="flex items-center gap-3">
                 <Avatar src={prof?.avatar} name={prof?.name || me.slice(2)} size={64} />
                 <div className="min-w-0 me-auto">
@@ -157,6 +159,16 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
           {PIECE_SETS.map((p) => (
             <button key={p.id} onClick={() => setPset(p.id)} aria-pressed={pset === p.id}
               className={"chip " + (pset === p.id ? "chip-on" : "")}>{uiLang === "ru" ? p.ru : p.en}</button>
+          ))}
+        </div>
+      </section>
+
+      <section className="card space-y-2">
+        <h2 className="text-lg font-bold">{uiLang === "ru" ? "Дизайн профиля" : "Profile design"}</h2>
+        <div className="flex gap-2 flex-wrap">
+          {PTHEMES.map((p) => (
+            <button key={p.id} onClick={() => setPth(p.id)} aria-pressed={pth.id === p.id}
+              className={"chip " + (pth.id === p.id ? "chip-on" : "")}>{uiLang === "ru" ? p.ru : p.en}</button>
           ))}
         </div>
       </section>
