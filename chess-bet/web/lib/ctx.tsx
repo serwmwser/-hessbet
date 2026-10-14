@@ -8,6 +8,12 @@ export const BOARDS = {
   classic: ["#f0d9b5", "#b58863"],
   ocean: ["#dce6f2", "#5b7fa6"],
   violet: ["#ece6f7", "#7b63b0"],
+  marble: ["#f1f1ee", "#8e939b"],
+  walnut: ["#e8cfa6", "#7a4a2a"],
+  ice: ["#eaf6ff", "#7fb4d6"],
+  gold: ["#f6e7b4", "#b8892b"],
+  rose: ["#fbe3e8", "#c26a82"],
+  graphite: ["#d9dbe0", "#5b6270"],
 } as const;
 export type BoardName = keyof typeof BOARDS;
 
