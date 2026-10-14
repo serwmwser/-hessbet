@@ -93,6 +93,7 @@ export default function Lobby() {
           </div>
 <div className="flex gap-2 mb-2"><button type="button" className={"chip " + (!big ? "chip-on" : "")} onClick={() => { setBig(false); setBetIdx(1); }}>{lt.stdName} 0.5-5</button>{BIG_BETS.length > 0 ? <button type="button" className={"chip " + (big ? "chip-on" : "")} onClick={() => { setBig(true); setBetIdx(0); }}>{lt.bigName} 5.5-{BET_MAX / 1e6}</button> : null}</div>
 <p className="text-xs opacity-70 mb-2">{big ? lt.bigInfo(String(BET_MAX / 1e6)) : lt.stdInfo}</p>
+<p className="text-xs opacity-70 mb-2">{lt.switchHint} {big ? lt.quickBig(String(BET_MAX / 1e6)) : lt.quickStd}</p>
           <input id="bet" type="range" min={0} max={LIST.length - 1} value={betIdx} onChange={(e) => setBetIdx(+e.target.value)} className="w-full h-8" />
           <div className="flex flex-wrap gap-2 mt-1">
             {QUICK.filter((q) => LIST.includes(q)).map((q) => (
