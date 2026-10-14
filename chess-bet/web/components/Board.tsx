@@ -3,6 +3,7 @@ import { Chessboard } from "react-chessboard";
 import { Chess, Square } from "chess.js";
 import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { BOARDS, useApp } from "@/lib/ctx";
+import { piecesFor, usePieceSet } from "@/lib/pieces";
 
 export const fmtClock = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -59,6 +60,7 @@ type Props = {
 
 export default function Board({ fen, orientation, lastMove, disabled, mute, onMove }: Props) {
   const { board } = useApp();
+  const [pset] = usePieceSet();
   const [sel, setSel] = useState<string | null>(null);
   const [promo, setPromo] = useState<{ from: string; to: string } | null>(null);
   const chess = useMemo(() => new Chess(fen), [fen]);
@@ -108,6 +110,7 @@ export default function Board({ fen, orientation, lastMove, disabled, mute, onMo
         animationDuration={180}
         customDarkSquareStyle={{ backgroundColor: BOARDS[board][1] }}
         customLightSquareStyle={{ backgroundColor: BOARDS[board][0] }}
+        customPieces={piecesFor(pset)}
         customBoardStyle={{ borderRadius: 16, overflow: "hidden", boxShadow: "0 18px 50px -18px rgba(0,0,0,.55)" }}
         customSquareStyles={styles}
         onPromotionCheck={() => false}

@@ -4,6 +4,7 @@ import { useActiveAccount, useWalletBalance } from "thirdweb/react";
 import { fetchHistory, fetchProfile, postFaucet, DoneGame, ProfileData, Stats } from "@/lib/api";
 import { chain, client, FAUCET_ENABLED, shortAddr, usdc, USDC_ADDRESS } from "@/lib/config";
 import { BOARDS, BoardName, useApp } from "@/lib/ctx";
+import { PIECE_SETS, usePieceSet } from "@/lib/pieces";
 import { gameUrl } from "@/lib/invite";
 import Avatar from "./Avatar";
 import BuyCrypto from "./BuyCrypto";
@@ -14,6 +15,8 @@ import Share from "./Share";
 
 export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => void }) {
   const { t, board, setBoard, toast } = useApp();
+  const uiLang = useApp().lang;
+  const [pset, setPset] = usePieceSet();
   const account = useActiveAccount();
   const me = account?.address;
   const pol = useWalletBalance({ client, chain, address: me });
@@ -144,6 +147,16 @@ export default function Profile({ onOpenGame }: { onOpenGame: (id: number) => vo
               className={`w-14 h-14 rounded-2xl overflow-hidden grid grid-cols-2 border-2 ${board === b ? "border-emerald-500" : "border-transparent"}`}>
               {[0, 1, 1, 0].map((c, i) => <span key={i} style={{ background: BOARDS[b][c] }} />)}
             </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="card space-y-2">
+        <h2 className="text-lg font-bold">{uiLang === "ru" ? "Фигуры" : "Pieces"}</h2>
+        <div className="flex gap-2 flex-wrap">
+          {PIECE_SETS.map((p) => (
+            <button key={p.id} onClick={() => setPset(p.id)} aria-pressed={pset === p.id}
+              className={"chip " + (pset === p.id ? "chip-on" : "")}>{uiLang === "ru" ? p.ru : p.en}</button>
           ))}
         </div>
       </section>
