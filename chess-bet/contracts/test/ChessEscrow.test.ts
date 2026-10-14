@@ -31,14 +31,15 @@ describe("ChessEscrow v2", () => {
 
   it("принимает корректные ставки и время", async () => {
     const { esc, a } = await setup();
-    for (const d of [900, 1800, 2700, 3600, 10800, 86400]) await esc.connect(a).createGame(U(0.05), d, ZERO);
+    for (const d of [900, 1800, 2700, 3600, 10800, 86400]) await esc.connect(a).createGame(U(0.5), d, ZERO);
     await esc.connect(a).createGame(U(5), 900, ZERO);
-    await esc.connect(a).createGame(U(1.35), 900, ZERO);
+    await esc.connect(a).createGame(U(1.5), 900, ZERO);
+    await esc.connect(a).createGame(U(25), 900, ZERO); // стартовый потолок включительно
   });
 
   it("отклоняет неверные ставки и время", async () => {
     const { esc, a } = await setup();
-    for (const bad of [0n, U(0.04), U(0.07), U(5.05), U(6)])
+    for (const bad of [0n, U(0.4), U(0.7), U(1.2), U(5.25), U(25.5), U(26)])
       await expect(esc.connect(a).createGame(bad, 900, ZERO)).to.be.revertedWithCustomError(esc, "BadBet");
     for (const d of [0, 60, 1000, 7200])
       await expect(esc.connect(a).createGame(U(1), d, ZERO)).to.be.revertedWithCustomError(esc, "BadDuration");
@@ -238,21 +239,27 @@ describe("Потолок ставки", () => {
     const esc = await (await ethers.getContractFactory("ChessEscrow")).deploy(
       await usdc.getAddress(), oracle.address, fee.address, 600
     );
-    await usdc.mint(a.address, U(100));
-    await usdc.connect(a).approve(await esc.getAddress(), U(100));
+    await usdc.mint(a.address, U(2000));
+    await usdc.connect(a).approve(await esc.getAddress(), U(2000));
     return { owner, oracle, a, esc };
   }
-  it("по умолчанию 5 USDC, владелец снижает до 0.5 — выше нельзя", async () => {
+  it("старт с потолка 25 USDC, владелец поднимает до 500 и снижает обратно — выше 500 нельзя", async () => {
     const { owner, a, esc } = await setup();
-    expect(await esc.maxBet()).to.equal(U(5));
+    expect(await esc.maxBet()).to.equal(U(25));
+    await esc.connect(a).createGame(U(25), 900, ZERO);
+    await expect(esc.connect(a).createGame(U(25.5), 900, ZERO)).to.be.revertedWithCustomError(esc, "BadBet");
+    await esc.connect(owner).setMaxBet(U(500));
+    expect(await esc.maxBet()).to.equal(U(500));
+    await esc.connect(a).createGame(U(500), 900, ZERO);
+    await expect(esc.connect(a).createGame(U(500.5), 900, ZERO)).to.be.revertedWithCustomError(esc, "BadBet");
     await esc.connect(owner).setMaxBet(U(0.5));
     await esc.connect(a).createGame(U(0.5), 900, ZERO);
-    await expect(esc.connect(a).createGame(U(0.55), 900, ZERO)).to.be.revertedWithCustomError(esc, "BadBet");
+    await expect(esc.connect(a).createGame(U(1), 900, ZERO)).to.be.revertedWithCustomError(esc, "BadBet");
   });
-  it("только владелец, не выше 5 USDC, не ниже 0.05, кратно шагу", async () => {
+  it("только владелец, не выше 500 USDC, не ниже 0.5, кратно шагу 0.5", async () => {
     const { a, owner, esc } = await setup();
     await expect(esc.connect(a).setMaxBet(U(1))).to.be.revertedWithCustomError(esc, "OwnableUnauthorizedAccount");
-    for (const bad of [0n, U(0.04), U(5.05), U(1.02)])
+    for (const bad of [0n, U(0.4), U(500.5), U(1.2), U(501)])
       await expect(esc.connect(owner).setMaxBet(bad)).to.be.revertedWithCustomError(esc, "BadBet");
   });
 });
