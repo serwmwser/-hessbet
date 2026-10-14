@@ -1,7 +1,7 @@
 "use client";
 import { useTx, TxKey } from "@/lib/txt";
 
-const STEPS: TxKey[] = ["how1", "how2", "how3", "how4", "how5"];
+const STEPS: TxKey[] = ["how1", "how2", "how3", "how4", "how5", "how6"];
 
 export default function HowTo() {
   const tx = useTx();
