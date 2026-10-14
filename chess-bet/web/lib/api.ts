@@ -19,8 +19,15 @@ export type ProfileData = { name: string; bio: string; link: string; avatar: str
 export const fetchProfile = (a: string) => get<ProfileData | null>(`/profile/${a}`);
 export const fetchProfiles = (a: string[]) => get<Record<string, { name: string; avatar: string }>>(`/profiles?a=${a.join(",")}`);
 export async function postProfile(body: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
-  const r = await fetch(API_URL + "/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  return r.json();
+  // любой сбой (сервер недоступен, старая версия, чужой домен, не-JSON ответ) возвращаем как понятный код ошибки, а не молча
+  let r: Response;
+  try { r = await fetch(API_URL + "/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); }
+  catch { return { ok: false, error: "network" }; }
+  try {
+    const j = (await r.json()) as { ok?: boolean; error?: string };
+    if (j && j.ok === true) return { ok: true };
+    return { ok: false, error: j?.error || `http_${r.status}` };
+  } catch { return { ok: false, error: `http_${r.status}` }; }
 }
 export async function postFaucet(address: string): Promise<{ ok: boolean; error?: string }> {
   const r = await fetch(API_URL + "/faucet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address }) });
