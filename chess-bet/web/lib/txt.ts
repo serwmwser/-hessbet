@@ -2,7 +2,7 @@
 import { useApp } from "./ctx";
 import type { Lang } from "./i18n";
 
-const K = ["waitTitle", "waitSub", "startTitle", "startWhite", "startBlack", "winTitle", "winSub", "loseTitle", "loseSub", "howTitle", "how1", "how2", "how3", "how4", "how5"] as const;
+const K = ["waitTitle", "waitSub", "startTitle", "startWhite", "startBlack", "winTitle", "winSub", "loseTitle", "loseSub", "howTitle", "how1", "how2", "how3", "how4", "how5", "how6"] as const;
 export type TxKey = (typeof K)[number];
 
 const D: Record<Lang, Record<TxKey, string>> = {
@@ -12,10 +12,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "Победа!", winSub: "Блестящая партия! Нажмите «Забрать» ниже, и выигрыш придёт на ваш кошелёк.",
     loseTitle: "В этот раз не повезло", loseSub: "Это всего лишь партия. Каждое поражение учит, а реванш уже ждёт в лобби. Вы обязательно отыграетесь!",
     howTitle: "Как играть", how1: "Войдите в аккаунт или подключите кошелёк. Для игры на балансе должны быть USDC (для ставок) и немного POL (для комиссии сети). Если токенов нет, пополните баланс через покупку: кнопки в карточке «Пополнить баланс» ниже.",
-    how2: "В лобби выберите ставку (0.05–5 USDC) и время, нажмите «Создать игру» и подтвердите два шага в кошельке. Или присоединитесь к чужой игре.",
+    how2: "В лобби выберите ставку (0.05–5 USDC) и время, нажмите «Создать игру». В кошельке нужно подтвердить минимум 2–3 транзакции подряд: разрешение на списание USDC, затем создание игры (иногда добавляется ещё одно подтверждение). Не закрывайте кошелёк, пока не подтвердите все шаги, иначе игра не создастся. Присоединение к чужой игре работает так же: несколько подтверждений подряд (разрешение на списание USDC и вход в игру).",
     how3: "Когда соперник присоединится, партия начнётся сама. Время общее на партию и идёт только на вашем ходу.",
     how4: "Победили? Нажмите «Забрать выигрыш» на экране игры или в «Моих играх». Вы получите 94% банка. 6% — комиссия, благодаря которой в приложении нет рекламы.",
     how5: "Ничья, отмена или зависшая игра: ставки возвращаются полностью, без комиссии. Пригласить друга можно ссылкой ниже.",
+    how6: "Газ: каждая транзакция (создание игры, присоединение, получение выигрыша) оплачивается комиссией сети в POL. Держите на кошельке небольшой запас POL заранее: без него нельзя ни начать игру, ни забрать выигрыш.",
   },
   en: {
     waitTitle: "Waiting for an opponent", waitSub: "Your game is created. As soon as someone joins, the match starts by itself. You can close the page and come back later.",
@@ -23,10 +24,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "Victory!", winSub: "Brilliant game! Press Claim below and your winnings go to your wallet.",
     loseTitle: "Not this time", loseSub: "It's only a game. Every loss teaches something, and a rematch is waiting in the lobby. You'll get them next time!",
     howTitle: "How to play", how1: "Sign in or connect a wallet. To play you need USDC (for stakes) and a little POL (for network fees) on your balance. If you have none, top up by buying them: the buttons are in the Top up card below.",
-    how2: "In the lobby pick a stake (0.05–5 USDC) and time, press Create game and confirm two steps in your wallet. Or join someone else's game.",
+    how2: "In the lobby pick a stake (0.05–5 USDC) and time, then press Create game. In your wallet you must confirm at least 2–3 transactions in a row: allowing USDC to be spent, then creating the game (sometimes one more confirmation). Don't close the wallet until all steps are confirmed, or the game won't be created. Joining someone else's game works the same way: several confirmations in a row (allowing USDC and joining the game).",
     how3: "When an opponent joins, the match starts by itself. The time is shared for the whole game and runs only on your turn.",
     how4: "Won? Press Claim on the game screen or in My games. You get 94% of the pot. The 6% fee is what keeps the app free of ads.",
     how5: "Draw, cancel or a stuck game: stakes are refunded in full, no fee. Invite a friend with the link below.",
+    how6: "Gas: every transaction (creating a game, joining, claiming winnings) is paid with a network fee in POL. Keep a small reserve of POL in your wallet in advance: without it you can neither start a game nor claim your winnings.",
   },
   es: {
     waitTitle: "Esperando rival", waitSub: "La partida está creada. En cuanto alguien se una, empezará sola. Puedes cerrar la página y volver más tarde.",
@@ -34,10 +36,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "¡Victoria!", winSub: "¡Partidazo! Pulsa Reclamar abajo y tus ganancias llegarán a tu monedero.",
     loseTitle: "Esta vez no", loseSub: "Solo es una partida. Cada derrota enseña algo y la revancha te espera en el lobby. ¡La próxima será tuya!",
     howTitle: "Cómo jugar", how1: "Inicia sesión o conecta un monedero. Para jugar necesitas USDC (para apuestas) y un poco de POL (para comisiones de red) en tu saldo. Si no tienes, recarga comprándolos: los botones están en la tarjeta de recarga de abajo.",
-    how2: "En el lobby elige apuesta (0.05–5 USDC) y tiempo, pulsa Crear partida y confirma dos pasos en el monedero. O únete a otra partida.",
+    how2: "En el lobby elige apuesta (0.05–5 USDC) y tiempo, y pulsa Crear partida. En el monedero debes confirmar al menos 2–3 transacciones seguidas: permiso para gastar USDC y luego crear la partida (a veces una confirmación más). No cierres el monedero hasta confirmar todos los pasos, o la partida no se creará. Unirse a la partida de otro funciona igual: varias confirmaciones seguidas (permiso de USDC y entrar en la partida).",
     how3: "Cuando un rival se une, la partida empieza sola. El tiempo es común para toda la partida y corre solo en tu turno.",
     how4: "¿Ganaste? Pulsa Reclamar en la pantalla de juego o en Mis partidas. Recibes el 94% del bote. La comisión del 6% mantiene la app sin anuncios.",
     how5: "Tablas, cancelación o partida atascada: las apuestas se devuelven íntegras, sin comisión. Invita a un amigo con el enlace de abajo.",
+    how6: "Gas: cada transacción (crear partida, unirse, reclamar ganancias) se paga con una comisión de red en POL. Ten de antemano una pequeña reserva de POL en tu monedero: sin ella no puedes empezar una partida ni reclamar tus ganancias.",
   },
   de: {
     waitTitle: "Warte auf Gegner", waitSub: "Dein Spiel ist erstellt. Sobald jemand beitritt, startet die Partie von selbst. Du kannst die Seite schließen und später zurückkommen.",
@@ -45,10 +48,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "Sieg!", winSub: "Starke Partie! Tippe unten auf Abholen und der Gewinn geht an dein Wallet.",
     loseTitle: "Diesmal nicht", loseSub: "Es ist nur ein Spiel. Jede Niederlage lehrt etwas, und die Revanche wartet in der Lobby. Beim nächsten Mal klappt es!",
     howTitle: "So spielst du", how1: "Melde dich an oder verbinde ein Wallet. Zum Spielen brauchst du USDC (für Einsätze) und etwas POL (für Netzwerkgebühren) auf dem Guthaben. Hast du keine, lade durch Kauf auf: die Buttons findest du unten in der Karte zum Aufladen.",
-    how2: "Wähle in der Lobby Einsatz (0,05–5 USDC) und Zeit, tippe auf Spiel erstellen und bestätige zwei Schritte im Wallet. Oder tritt einem fremden Spiel bei.",
+    how2: "Wähle in der Lobby Einsatz (0,05–5 USDC) und Zeit und tippe auf Spiel erstellen. Im Wallet musst du mindestens 2–3 Transaktionen nacheinander bestätigen: Freigabe zum Abbuchen von USDC, dann das Erstellen des Spiels (manchmal eine weitere Bestätigung). Schließe das Wallet nicht, bevor alle Schritte bestätigt sind, sonst wird das Spiel nicht erstellt. Der Beitritt zu einem fremden Spiel funktioniert genauso: mehrere Bestätigungen nacheinander (USDC-Freigabe und Beitritt).",
     how3: "Sobald ein Gegner beitritt, startet die Partie von selbst. Die Zeit gilt für die ganze Partie und läuft nur auf deinem Zug.",
     how4: "Gewonnen? Tippe auf Abholen im Spielbildschirm oder unter Meine Spiele. Du erhältst 94 % des Pots. Die 6 % Gebühr hält die App werbefrei.",
     how5: "Remis, Abbruch oder hängende Partie: Einsätze gibt es vollständig zurück, ohne Gebühr. Lade Freunde per Link unten ein.",
+    how6: "Gas: Jede Transaktion (Spiel erstellen, beitreten, Gewinn abholen) wird mit einer Netzwerkgebühr in POL bezahlt. Halte vorab eine kleine POL-Reserve im Wallet: ohne sie kannst du weder ein Spiel starten noch deinen Gewinn abholen.",
   },
   fr: {
     waitTitle: "En attente d’un adversaire", waitSub: "Votre partie est créée. Dès qu’un adversaire rejoint, elle démarre toute seule. Vous pouvez fermer la page et revenir plus tard.",
@@ -56,10 +60,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "Victoire !", winSub: "Superbe partie ! Appuyez sur Récupérer ci-dessous et vos gains arrivent dans votre portefeuille.",
     loseTitle: "Pas cette fois", loseSub: "Ce n’est qu’une partie. Chaque défaite apprend quelque chose, et la revanche vous attend dans le lobby. Ce sera pour la prochaine !",
     howTitle: "Comment jouer", how1: "Connectez-vous ou liez un portefeuille. Pour jouer, il faut des USDC (pour les mises) et un peu de POL (pour les frais de réseau) sur votre solde. Si vous n’en avez pas, rechargez par achat : les boutons sont dans la carte de recharge ci-dessous.",
-    how2: "Dans le lobby, choisissez la mise (0,05–5 USDC) et le temps, appuyez sur Créer la partie et confirmez deux étapes dans le portefeuille. Ou rejoignez une autre partie.",
+    how2: "Dans le lobby, choisissez la mise (0,05–5 USDC) et le temps, puis appuyez sur Créer la partie. Dans le portefeuille, vous devez confirmer au moins 2–3 transactions d’affilée : autorisation de dépenser les USDC, puis création de la partie (parfois une confirmation de plus). Ne fermez pas le portefeuille avant d’avoir confirmé toutes les étapes, sinon la partie ne sera pas créée. Rejoindre la partie d’un autre fonctionne de la même façon : plusieurs confirmations d’affilée (autorisation USDC et entrée dans la partie).",
     how3: "Quand un adversaire rejoint, la partie démarre seule. Le temps est commun à toute la partie et ne court que pendant votre tour.",
     how4: "Gagné ? Appuyez sur Récupérer sur l’écran de jeu ou dans Mes parties. Vous recevez 94 % de la cagnotte. Les 6 % de frais gardent l’app sans publicité.",
     how5: "Nulle, annulation ou partie bloquée : les mises sont remboursées en totalité, sans frais. Invitez un ami avec le lien ci-dessous.",
+    how6: "Gaz : chaque transaction (créer une partie, la rejoindre, récupérer ses gains) se paie par des frais de réseau en POL. Gardez à l’avance une petite réserve de POL dans votre portefeuille : sans elle, impossible de lancer une partie ni de récupérer vos gains.",
   },
   pt: {
     waitTitle: "Aguardando adversário", waitSub: "Seu jogo foi criado. Assim que alguém entrar, a partida começa sozinha. Você pode fechar a página e voltar depois.",
@@ -67,10 +72,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "Vitória!", winSub: "Partida brilhante! Toque em Resgatar abaixo e o prêmio vai para sua carteira.",
     loseTitle: "Dessa vez não", loseSub: "É só uma partida. Cada derrota ensina algo, e a revanche espera no lobby. Na próxima você vence!",
     howTitle: "Como jogar", how1: "Entre ou conecte uma carteira. Para jogar você precisa de USDC (para apostas) e um pouco de POL (para taxas da rede) no saldo. Se não tiver, adicione saldo comprando: os botões estão no cartão de recarga abaixo.",
-    how2: "No lobby escolha a aposta (0,05–5 USDC) e o tempo, toque em Criar jogo e confirme dois passos na carteira. Ou entre no jogo de outra pessoa.",
+    how2: "No lobby escolha a aposta (0,05–5 USDC) e o tempo, e toque em Criar jogo. Na carteira você deve confirmar pelo menos 2–3 transações seguidas: permissão para gastar USDC e depois a criação do jogo (às vezes mais uma confirmação). Não feche a carteira antes de confirmar todas as etapas, ou o jogo não será criado. Entrar no jogo de outra pessoa funciona igual: várias confirmações seguidas (permissão de USDC e entrada no jogo).",
     how3: "Quando um adversário entra, a partida começa sozinha. O tempo é total da partida e corre só na sua vez.",
     how4: "Ganhou? Toque em Resgatar na tela do jogo ou em Meus jogos. Você recebe 94% do prêmio. A taxa de 6% mantém o app sem anúncios.",
     how5: "Empate, cancelamento ou jogo travado: as apostas voltam integralmente, sem taxa. Convide um amigo pelo link abaixo.",
+    how6: "Gás: cada transação (criar jogo, entrar, resgatar o prêmio) é paga com uma taxa de rede em POL. Mantenha antes uma pequena reserva de POL na carteira: sem ela você não consegue iniciar um jogo nem resgatar o prêmio.",
   },
   tr: {
     waitTitle: "Rakip bekleniyor", waitSub: "Oyununuz oluşturuldu. Biri katılır katılmaz maç kendiliğinden başlar. Sayfayı kapatıp sonra dönebilirsiniz.",
@@ -78,10 +84,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "Zafer!", winSub: "Harika bir oyun! Aşağıdaki Al düğmesine basın, kazancınız cüzdanınıza gelsin.",
     loseTitle: "Bu sefer olmadı", loseSub: "Sadece bir oyun. Her yenilgi bir şey öğretir, rövanş lobide sizi bekliyor. Bir dahaki sefere kazanacaksınız!",
     howTitle: "Nasıl oynanır", how1: "Giriş yapın veya cüzdan bağlayın. Oynamak için bakiyenizde USDC (bahisler için) ve biraz POL (ağ ücretleri için) olmalı. Yoksa satın alarak yükleyin: düğmeler aşağıdaki yükleme kartındadır.",
-    how2: "Lobide bahis (0,05–5 USDC) ve süre seçin, Oyun oluştur’a basın ve cüzdanda iki adımı onaylayın. Ya da başkasının oyununa katılın.",
+    how2: "Lobide bahis (0,05–5 USDC) ve süre seçin, Oyun oluştur’a basın. Cüzdanda art arda en az 2–3 işlemi onaylamanız gerekir: USDC harcama izni, ardından oyunun oluşturulması (bazen bir onay daha). Tüm adımları onaylamadan cüzdanı kapatmayın, aksi halde oyun oluşmaz. Başkasının oyununa katılmak da aynı şekilde çalışır: art arda birkaç onay (USDC izni ve oyuna giriş).",
     how3: "Rakip katılınca maç kendiliğinden başlar. Süre tüm oyun için ortaktır ve yalnızca sizin sıranızda işler.",
     how4: "Kazandınız mı? Oyun ekranında veya Oyunlarım’da Al’a basın. Havuzun %94’ünü alırsınız. %6 komisyon uygulamayı reklamsız tutar.",
     how5: "Beraberlik, iptal veya takılan oyun: bahisler komisyonsuz tamamen iade edilir. Aşağıdaki bağlantıyla arkadaş davet edin.",
+    how6: "Gaz: her işlem (oyun oluşturma, katılma, kazancı alma) POL cinsinden ağ ücretiyle ödenir. Cüzdanınızda önceden küçük bir POL yedeği bulundurun: onsuz ne oyun başlatabilir ne de kazancınızı alabilirsiniz.",
   },
   zh: {
     waitTitle: "等待对手", waitSub: "对局已创建。有人加入后将自动开始。你可以关闭页面，稍后再回来。",
@@ -89,10 +96,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "胜利！", winSub: "精彩的一局！点击下方“领取”，奖金将发送到你的钱包。",
     loseTitle: "这次没赢", loseSub: "只是一盘棋而已。每次失败都是学习，大厅里已有复仇等着你。下次一定能赢！",
     howTitle: "玩法", how1: "登录或连接钱包。游戏需要你的余额中有 USDC（用于下注）和少量 POL（用于网络手续费）。如果没有，可通过购买充值：按钮在下方的充值卡片中。",
-    how2: "在大厅选择赌注（0.05–5 USDC）和用时，点击“创建对局”并在钱包中确认两步。也可以加入他人的对局。",
+    how2: "在大厅选择赌注（0.05–5 USDC）和用时，点击“创建对局”。你需要在钱包中连续确认至少 2–3 笔交易：授权花费 USDC，然后创建对局（有时还会多一次确认）。在确认完所有步骤之前请不要关闭钱包，否则对局不会创建。加入他人的对局也是一样：需要连续确认几次（授权 USDC 并加入对局）。",
     how3: "对手加入后对局自动开始。用时为整局共用，只在你走棋时计时。",
     how4: "赢了？在对局页面或“我的对局”点击“领取”。你将获得奖池的 94%。6% 的手续费让应用保持无广告。",
     how5: "和棋、取消或卡住的对局：赌注全额退还，不收手续费。可通过下方链接邀请好友。",
+    how6: "Gas：每笔交易（创建对局、加入、领取奖金）都要用 POL 支付网络手续费。请提前在钱包里留一小笔 POL：没有它既无法开始对局，也无法领取奖金。",
   },
   ar: {
     waitTitle: "بانتظار الخصم", waitSub: "تم إنشاء لعبتك. بمجرد انضمام أحدهم تبدأ المباراة تلقائيًا. يمكنك إغلاق الصفحة والعودة لاحقًا.",
@@ -100,10 +108,11 @@ const D: Record<Lang, Record<TxKey, string>> = {
     winTitle: "فوز!", winSub: "مباراة رائعة! اضغط «استلام» أدناه لتصل أرباحك إلى محفظتك.",
     loseTitle: "ليس هذه المرة", loseSub: "إنها مجرد مباراة. كل خسارة تعلّمك شيئًا، والعودة بانتظارك في الردهة. ستفوز في المرة القادمة!",
     howTitle: "كيف تلعب", how1: "سجّل الدخول أو اربط محفظة. للعب يجب أن يكون في رصيدك USDC (للرهانات) وقليل من POL (لرسوم الشبكة). إن لم تكن لديك، اشحن الرصيد بالشراء: الأزرار في بطاقة الشحن أدناه.",
-    how2: "في الردهة اختر الرهان (0.05–5 USDC) والوقت، اضغط «إنشاء لعبة» وأكّد خطوتين في المحفظة. أو انضم إلى لعبة غيرك.",
+    how2: "في الردهة اختر الرهان (0.05–5 USDC) والوقت، ثم اضغط «إنشاء لعبة». عليك في المحفظة تأكيد 2–3 معاملات متتالية على الأقل: السماح بإنفاق USDC ثم إنشاء اللعبة (وأحيانًا تأكيد إضافي). لا تغلق المحفظة قبل تأكيد كل الخطوات وإلا فلن تُنشأ اللعبة. الانضمام إلى لعبة غيرك يتم بالطريقة نفسها: عدة تأكيدات متتالية (السماح بـ USDC ثم الدخول إلى اللعبة).",
     how3: "عند انضمام الخصم تبدأ المباراة تلقائيًا. الوقت مشترك للمباراة كلها ويحسب فقط في دورك.",
     how4: "فزت؟ اضغط «استلام» في شاشة اللعبة أو في «ألعابي». تحصل على 94% من الجائزة. رسوم 6% تُبقي التطبيق خاليًا من الإعلانات.",
     how5: "تعادل أو إلغاء أو لعبة عالقة: تُرد الرهانات كاملة دون رسوم. ادعُ صديقًا عبر الرابط أدناه.",
+    how6: "الغاز: كل معاملة (إنشاء لعبة، انضمام، استلام الأرباح) تُدفع برسوم شبكة بعملة POL. احتفظ مسبقًا باحتياطي صغير من POL في محفظتك: بدونه لا يمكنك بدء لعبة ولا استلام أرباحك.",
   },
 };
 
