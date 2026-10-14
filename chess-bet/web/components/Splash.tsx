@@ -63,8 +63,8 @@ export function StartSplash({ white, onDone }: { white: boolean; onDone: () => v
   );
 }
 
-/** Победа: салют, кубок и корона. */
-export function WinSplash() {
+/** Победа: салют, кубок и корона. Необязательный sub заменяет стандартный текст (в игре с ботом нет выигрыша). */
+export function WinSplash({ sub }: { sub?: string } = {}) {
   const tx = useTx();
   const reduce = useReducedMotion();
   const bits = useMemo(() => Array.from({ length: 36 }, (_, i) => ({ x: Math.random() * 100, d: Math.random() * 1.2, e: ["🎉", "✨", "🏆", "🎊", "👑", "⭐"][i % 6], s: 16 + Math.random() * 18 })), []);
@@ -81,13 +81,13 @@ export function WinSplash() {
       <motion.div className="relative text-7xl" initial={{ scale: 0.2, rotate: -25 }} animate={reduce ? { scale: 1 } : { scale: [0.2, 1.3, 1], rotate: [-25, 10, 0], y: [0, -8, 0] }} transition={{ duration: 0.9 }}>🏆</motion.div>
       <motion.div className="relative text-3xl" animate={reduce ? undefined : { y: [0, -6, 0] }} transition={{ duration: 1.6, repeat: Infinity }} aria-hidden>👑</motion.div>
       <h2 className="relative text-3xl font-extrabold bg-gradient-to-r from-amber-300 via-brand-400 to-sky-400 bg-clip-text text-transparent">{tx("winTitle")}</h2>
-      <p className="relative text-sm opacity-80 max-w-xs mx-auto">{tx("winSub")}</p>
+      <p className="relative text-sm opacity-80 max-w-xs mx-auto">{sub ?? tx("winSub")}</p>
     </div>
   );
 }
 
-/** Поражение: мягкая поддержка, плывущие вверх сердечки. */
-export function LoseSplash() {
+/** Поражение: мягкая поддержка, плывущие вверх сердечки. Необязательный sub заменяет стандартный текст. */
+export function LoseSplash({ sub }: { sub?: string } = {}) {
   const tx = useTx();
   const reduce = useReducedMotion();
   const hearts = useMemo(() => Array.from({ length: 10 }, (_, i) => ({ x: 8 + i * 9, d: i * 0.4 })), []);
@@ -103,7 +103,7 @@ export function LoseSplash() {
       )}
       <motion.div className="relative text-6xl" initial={{ rotate: 0, y: -30, opacity: 0 }} animate={{ rotate: [0, -12, 0], y: 0, opacity: 1 }} transition={{ duration: 1 }}>♚</motion.div>
       <h2 className="relative text-2xl font-extrabold bg-gradient-to-r from-brand-400 to-sky-400 bg-clip-text text-transparent">{tx("loseTitle")}</h2>
-      <p className="relative text-sm opacity-80 max-w-xs mx-auto">{tx("loseSub")}</p>
+      <p className="relative text-sm opacity-80 max-w-xs mx-auto">{sub ?? tx("loseSub")}</p>
     </div>
   );
 }
