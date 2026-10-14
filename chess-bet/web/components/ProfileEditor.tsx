@@ -26,7 +26,7 @@ export default function ProfileEditor({ initial, onSaved, onClose }: { initial: 
   };
 
   const save = async () => {
-    if (!account) return;
+    if (!account) { toast(`${t("saveFailed")}: wallet`, "err"); return; }
     setBusy(true);
     try {
       const body = { name: f.name.trim(), bio: f.bio.trim(), link: f.link.trim(), avatar: f.avatar };
@@ -35,11 +35,11 @@ export default function ProfileEditor({ initial, onSaved, onClose }: { initial: 
       const message = `ChessBet profile\nAddress: ${account.address}\nHash: ${hash}\nTime: ${ts}`;
       const sig = await account.signMessage({ message });
       const r = await postProfile({ ...body, address: account.address, ts, sig });
-      if (!r.ok) { toast(t(ERR[r.error ?? ""] ?? "saveFailed"), "err"); return; }
+      if (!r.ok) { toast(ERR[r.error ?? ""] ? t(ERR[r.error ?? ""]) : `${t("saveFailed")}: ${r.error ?? "?"}`, "err"); return; }
       forgetProfile(account.address);
       toast(t("saved"), "ok");
       onSaved(body);
-    } catch { toast(t("saveFailed"), "err"); }
+    } catch (e) { toast(`${t("saveFailed")}: ${(e as Error)?.message?.slice(0, 60) || "sign"}`, "err"); }
     finally { setBusy(false); }
   };
 
