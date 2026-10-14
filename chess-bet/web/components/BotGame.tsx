@@ -5,8 +5,8 @@ import { useApp } from "@/lib/ctx";
 import { usePT } from "@/lib/pauseTxt";
 import { botMove, botPause, botReset, botResign, botResume, startBot, useBot, Res } from "@/lib/botStore";
 import Board, { Clock, Moves } from "./Board";
-import Celebrate from "./Celebrate";
 import PausePage, { PauseButton } from "./PausePage";
+import { LoseSplash, WinSplash } from "./Splash";
 import { ReplayBar, useReplay } from "./Replay";
 
 export default function BotGame() {
@@ -80,8 +80,9 @@ export default function BotGame() {
       <Moves san={san} />
       {res ? (
         <div className="card text-center space-y-2 !bg-gradient-to-br from-brand-500/15 to-brand-violet/15">
-          {s.res?.kind === "win" && <Celebrate />}
-          <div className="text-xl font-bold">{res.text}</div>
+          {s.res?.kind === "win" && <WinSplash sub={pt.botWin} />}
+          {s.res?.kind === "lose" && <LoseSplash sub={pt.botLose} />}
+          {s.res?.kind === "draw" && <div className="text-xl font-bold">{res.text}</div>}
           {res.sub && <div className="text-sm opacity-70">{res.sub}</div>}
           <button className="btn btn-primary w-full" onClick={botReset}>{t("newGame")}</button>
         </div>
