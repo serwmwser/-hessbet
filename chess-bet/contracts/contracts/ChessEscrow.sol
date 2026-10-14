@@ -30,9 +30,9 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
         address inviteSigner; // address(0) = публичная игра
     }
 
-    uint256 public constant MIN_BET = 50_000;     // 0.05 USDC
-    uint256 public constant MAX_BET = 5_000_000;  // 5 USDC
-    uint256 public constant BET_STEP = 50_000;    // 0.05 USDC
+    uint256 public constant MIN_BET = 500_000;      // 0.5 USDC
+    uint256 public constant MAX_BET = 500_000_000;  // 500 USDC
+    uint256 public constant BET_STEP = 500_000;     // 0.5 USDC
     uint16 public constant MAX_FEE_BPS = 1000;    // потолок комиссии 10%
     uint32 public constant GRACE = 3 days;
 
@@ -41,7 +41,7 @@ contract ChessEscrow is Ownable, ReentrancyGuard {
     address public feeRecipient;
     uint16 public feeBps;
     /// @notice действующий потолок ставки (владелец может снизить для беты, но не выше MAX_BET)
-    uint256 public maxBet = MAX_BET;
+    uint256 public maxBet = 25_000_000; // start cap 25 USDC, owner raises it later
 
     // ---- реферальная программа "Вечный гамбит": доля реферера берётся ИЗ комиссии проекта ----
     // Реферер получает % от своей половины комиссии за каждую решённую (не ничью) партию приглашённого.
