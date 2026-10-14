@@ -2,14 +2,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchGames, fetchMine, OpenGame } from "@/lib/api";
-import { BETS, DEFAULT_FEE_BPS, DURATIONS, shortAddr, TERMS_URL, usdc } from "@/lib/config";
+import { BETS, BIG_BETS, DEFAULT_FEE_BPS, DURATIONS, shortAddr, TERMS_URL, usdc } from "@/lib/config";
 import { useApp } from "@/lib/ctx";
 import { gameUrl, newInvite } from "@/lib/invite";
 import { Step, useEscrow } from "@/lib/tx";
 import Share from "./Share";
 
 export const durLabel = (sec: number, min: string, hr: string) => (sec < 3600 ? `${sec / 60} ${min}` : `${sec / 3600} ${hr}`);
-const QUICK = [50_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
+const QUICK = [500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000, 25_000_000, 50_000_000, 100_000_000, 250_000_000, 500_000_000];
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Lobby() {
@@ -17,7 +17,8 @@ export default function Lobby() {
   const { account, create, join, cancel } = useEscrow();
   const [games, setGames] = useState<OpenGame[] | null>(null);
   const [feeBps, setFeeBps] = useState(DEFAULT_FEE_BPS);
-  const [betIdx, setBetIdx] = useState(19); // 1 USDC
+  const [betIdx, setBetIdx] = useState(1); // 1 USDC
+  const [big, setBig] = useState(false);
   const [dur, setDur] = useState(900);
   const [priv, setPriv] = useState(false);
   const [busy, setBusy] = useState<number | "create" | null>(null);
@@ -31,7 +32,8 @@ export default function Lobby() {
   }, []);
   useEffect(() => { refresh(); const i = setInterval(refresh, 4000); return () => clearInterval(i); }, [refresh]);
 
-  const bet = BETS[betIdx];
+  const LIST = big ? BIG_BETS : BETS;
+  const bet = LIST[Math.min(betIdx, LIST.length - 1)];
   const pot = bet * 2;
   const win = pot - Math.floor((pot * feeBps) / 10_000);
   const me = account?.address.toLowerCase();
@@ -87,10 +89,11 @@ export default function Lobby() {
             <label htmlFor="bet" className="text-sm opacity-70">{t("bet")}</label>
             <span className="mono text-2xl font-bold bg-gradient-to-r from-brand-400 to-brand-violet bg-clip-text text-transparent">{usdc(bet)} USDC</span>
           </div>
-          <input id="bet" type="range" min={0} max={BETS.length - 1} value={betIdx} onChange={(e) => setBetIdx(+e.target.value)} className="w-full h-8" />
+<div className="flex gap-2 mb-2"><button type="button" className={"chip " + (!big ? "chip-on" : "")} onClick={() => { setBig(false); setBetIdx(1); }}>0.5-5 USDC</button>{BIG_BETS.length > 0 ? <button type="button" className={"chip " + (big ? "chip-on" : "")} onClick={() => { setBig(true); setBetIdx(0); }}>5.5-500 USDC</button> : null}</div>
+          <input id="bet" type="range" min={0} max={LIST.length - 1} value={betIdx} onChange={(e) => setBetIdx(+e.target.value)} className="w-full h-8" />
           <div className="flex flex-wrap gap-2 mt-1">
-            {QUICK.map((q) => (
-              <button key={q} className={`chip ${bet === q ? "chip-on" : ""}`} onClick={() => setBetIdx(BETS.indexOf(q))}>{usdc(q)}</button>
+            {QUICK.filter((q) => LIST.includes(q)).map((q) => (
+              <button key={q} className={`chip ${bet === q ? "chip-on" : ""}`} onClick={() => setBetIdx(LIST.indexOf(q))}>{usdc(q)}</button>
             ))}
           </div>
         </div>
@@ -144,7 +147,7 @@ export default function Lobby() {
           <h2 className="text-lg font-bold me-auto">{t("lobby")}</h2>
           <select aria-label={t("bet")} value={fMax} onChange={(e) => setFMax(+e.target.value)} className="rounded-xl bg-black/5 dark:bg-white/10 px-2 py-1.5 text-sm">
             <option value={0} className="text-slate-900">{t("bet")}: {t("any")}</option>
-            {[500_000, 1_000_000, 2_500_000, 5_000_000].map((v) => <option key={v} value={v} className="text-slate-900">≤ {usdc(v)}</option>)}
+            {[500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000, 25_000_000, 50_000_000, 100_000_000, 500_000_000].map((v) => <option key={v} value={v} className="text-slate-900">≤ {usdc(v)}</option>)}
           </select>
           <select aria-label={t("time")} value={fDur} onChange={(e) => setFDur(+e.target.value)} className="rounded-xl bg-black/5 dark:bg-white/10 px-2 py-1.5 text-sm">
             <option value={0} className="text-slate-900">{t("time")}: {t("any")}</option>
