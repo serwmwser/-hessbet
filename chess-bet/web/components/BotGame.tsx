@@ -16,6 +16,8 @@ export default function BotGame() {
   const [minutes, setMinutes] = useState(s.minutes);
   const [level, setLevel] = useState(s.level);
   const [pick, setPick] = useState<"w" | "b" | "r">("w");
+  const [hide, setHide] = useState(false); // окно результата закрыто крестиком: видна доска с итоговой позицией
+  const again = () => { setHide(false); botReset(); };
   const san = s.chess.history();
   const replay = useReplay(san);
 
@@ -79,13 +81,20 @@ export default function BotGame() {
       </div>
       <Moves san={san} />
       {res ? (
-        <div className="card text-center space-y-2 !bg-gradient-to-br from-brand-500/15 to-brand-violet/15">
-          {s.res?.kind === "win" && <WinSplash sub={pt.botWin} />}
-          {s.res?.kind === "lose" && <LoseSplash sub={pt.botLose} />}
-          {s.res?.kind === "draw" && <div className="text-xl font-bold">{res.text}</div>}
-          {res.sub && <div className="text-sm opacity-70">{res.sub}</div>}
-          <button className="btn btn-primary w-full" onClick={botReset}>{t("newGame")}</button>
-        </div>
+        hide ? (
+          <button className="btn btn-primary w-full" onClick={again}>{t("newGame")}</button>
+        ) : (
+          <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 grid place-items-center p-4 bg-black/70 backdrop-blur-sm">
+            <div className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-3xl border border-white/20 bg-slate-900 text-white shadow-2xl ring-4 ring-brand-500/40 p-5 text-center space-y-3">
+              <button type="button" aria-label="close" className="absolute top-2 end-3 text-2xl leading-none text-white/60 hover:text-white" onClick={() => setHide(true)}>✕</button>
+              {s.res?.kind === "win" && <WinSplash sub={pt.botWin} />}
+              {s.res?.kind === "lose" && <LoseSplash sub={pt.botLose} />}
+              {s.res?.kind === "draw" && <div className="text-2xl font-extrabold py-4">{res.text}</div>}
+              {res.sub && <div className="text-sm text-white/70">{res.sub}</div>}
+              <button className="btn btn-primary w-full" onClick={again}>{t("newGame")}</button>
+            </div>
+          </div>
+        )
       ) : (
         <button className="btn btn-danger w-full" onClick={botResign}>{t("resign")}</button>
       )}
