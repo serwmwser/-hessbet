@@ -19,10 +19,12 @@ export const usdcContract = getContract({ client, chain, address: USDC_ADDRESS }
 export const escrowContract = getContract({ client, chain, address: ESCROW_ADDRESS || "0x0000000000000000000000000000000000000000" });
 
 // Всё хранится в минимальных единицах USDC: 1 USDC = 1_000_000
-export const BET_MIN = 50_000;
-export const BET_MAX = Number(process.env.NEXT_PUBLIC_BET_MAX_USDC || 5) * 1_000_000; // для беты можно снизить, например 0.5
-export const BET_STEP = 50_000;
-export const BETS = Array.from({ length: BET_MAX / BET_STEP }, (_, i) => (i + 1) * BET_STEP);
+export const BET_MIN = 500_000; // 0.5 USDC
+export const BET_MAX = Number(process.env.NEXT_PUBLIC_BET_MAX_USDC || 500) * 1_000_000; // site cap, raise with contract maxBet
+export const BET_STEP = 500_000; // 0.5 USDC
+export const STD_MAX = 5_000_000; // standard section up to 5 USDC
+export const BETS = Array.from({ length: Math.min(BET_MAX, STD_MAX) / BET_STEP }, (_, i) => (i + 1) * BET_STEP);
+export const BIG_BETS = Array.from({ length: Math.max(0, (BET_MAX - STD_MAX) / BET_STEP) }, (_, i) => STD_MAX + (i + 1) * BET_STEP);
 export const DURATIONS = [900, 1800, 2700, 3600, 10800, 86400];
 export const BOT_TIMES = [5, 15, 30, 45]; // минуты
 export const DEFAULT_FEE_BPS = 600;
