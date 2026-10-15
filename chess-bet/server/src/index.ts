@@ -44,6 +44,7 @@ const ABI = [
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallet = new ethers.Wallet(ORACLE_PK, provider);
 const escrow = new ethers.Contract(ESCROW, ABI, wallet);
+const ev = process.env.EVENTS === "0" ? (..._a: unknown[]) => {} : (...a: unknown[]) => (escrow as any).on(...a);
 
 // ---------- типы и состояние ----------
 // signer != null → приватная игра (в публичном лобби не показывается)
@@ -642,18 +643,18 @@ async function main() {
   await sync();
   // для pending-отчётов после рестарта
   for (const g of live.values()) if (g.over && !g.reported) void report(g);
-  escrow.on("GameCreated", (id: bigint, p1: string, bet: bigint, duration: bigint, signer: string) => {
+  ev("GameCreated", (id: bigint, p1: string, bet: bigint, duration: bigint, signer: string) => {
     open.set(Number(id), {
       id: Number(id), p1: lc(p1), bet: bet.toString(), duration: Number(duration),
       signer: signer === ethers.ZeroAddress ? null : lc(signer),
     });
   });
-  escrow.on("GameJoined", (id: bigint, p1: string, p2: string) => {
+  ev("GameJoined", (id: bigint, p1: string, p2: string) => {
     const o = open.get(Number(id));
     if (o && !live.has(Number(id))) startLive(Number(id), lc(p1), lc(p2), o.bet, o.duration);
     else void sync().catch(console.error);
   });
-  escrow.on("GameCancelled", (id: bigint) => { open.delete(Number(id)); });
+  ev("GameCancelled", (id: bigint) => { open.delete(Number(id)); });
   setInterval(() => void sync().catch((e) => console.error("sync:", e.message)), Math.max(1000, Number(SYNC_MS) || 60_000));
   server.listen(Number(PORT), () => console.log(`server :${PORT}, oracle ${wallet.address}, fee ${feeBps} bps`));
 }
